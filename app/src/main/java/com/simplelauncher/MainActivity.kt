@@ -3,20 +3,24 @@ package com.simplelauncher
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.WindowInsetsController
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager2.widget.ViewPager2
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var viewPager: ViewPager2
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         window.statusBarColor = Color.BLACK
 
-        // status bar icons stay light on dark
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.setSystemBarsAppearance(
                 0,
@@ -24,21 +28,32 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        val viewPager = ViewPager2(this).apply {
+        viewPager = ViewPager2(this).apply {
+            id = View.generateViewId()
             orientation = ViewPager2.ORIENTATION_HORIZONTAL
             adapter = ScreenSlidePagerAdapter(this@MainActivity)
             setCurrentItem(0, false)
         }
 
         setContentView(viewPager)
+
+        // Back button handling, Do nothing when present on HomeFragment
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (viewPager.currentItem != 0) {
+                    viewPager.currentItem = 0
+                }
+            }
+        })
     }
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
         override fun getItemCount() = 2
+
         override fun createFragment(position: Int): Fragment = when (position) {
             0 -> HomeFragment()
             1 -> AppListFragment()
             else -> HomeFragment()
-        } as Fragment
+        }
     }
 }

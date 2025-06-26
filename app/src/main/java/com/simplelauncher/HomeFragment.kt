@@ -1,5 +1,7 @@
 package com.simplelauncher
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -15,6 +17,7 @@ class HomeFragment : Fragment() {
 
     private val selectedApps = mutableListOf<AppInfo>()
     private lateinit var appsLayout: LinearLayout
+    private val prefsKey = "favorites"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,41 +43,19 @@ class HomeFragment : Fragment() {
             gravity = Gravity.CENTER
         }
 
-        // Favorite app labels container
+        // "Favourites" title
+        val favTitle = TextView(context).apply {
+            text = "Favourites"
+            setTextColor(Color.LTGRAY)
+            textSize = 18f
+            setPadding(48, 90, 48, 16)
+        }
+
+        // Favorite apps container
         appsLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 24, 48, 0)
+            setPadding(48, 0, 48, 0)
         }
-
-        // Add favorite app row
-        val addRow = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(48, 90, 48, 0)
-            setOnClickListener { openAppPicker() }
-
-            val text = TextView(context).apply {
-                text = "Add favorite"
-                setTextColor(Color.LTGRAY)
-                textSize = 14f
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-
-            val addIcon = ImageView(context).apply {
-                setImageResource(android.R.drawable.ic_menu_add)
-                setColorFilter(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(80, 80).apply {
-                    leftMargin = 16
-                }
-            }
-
-            addView(text)
-            addView(addIcon)
-        }
-
 
         val verticalLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -84,20 +65,13 @@ class HomeFragment : Fragment() {
             addView(Space(context).apply { minimumHeight = 12 })
             addView(dateText)
             addView(Space(context).apply { minimumHeight = 120 })
-            addView(addRow)
+            addView(favTitle)
             addView(appsLayout)
         }
 
         val rootLayout = FrameLayout(context).apply {
             setBackgroundColor(Color.BLACK)
-            addView(
-                verticalLayout,
-                FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    Gravity.TOP or Gravity.CENTER_HORIZONTAL
-                )
-            )
+            addView(verticalLayout)
         }
 
         clock.setOnClickListener {
@@ -112,39 +86,17 @@ class HomeFragment : Fragment() {
         return rootLayout
     }
 
-    private fun openAppPicker() {
-        val context = requireContext()
-        val pm = context.packageManager
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        val launchableApps = pm.queryIntentActivities(intent, 0)
-            .sortedBy { it.loadLabel(pm).toString() }
-
-        val appInfos = launchableApps.map {
-            AppInfo(
-                it.loadLabel(pm).toString(),
-                it.activityInfo.packageName,
-                it.activityInfo.name
-            )
-        }
-
-        val appNames = appInfos.map { it.label }.toTypedArray()
-
-        AlertDialog.Builder(context)
-            .setTitle("Choose App")
-            .setItems(appNames) { _, which ->
-                val chosenApp = appInfos[which]
-                selectedApps.add(chosenApp)
-                showSelectedApps()
-            }
-            .show()
+    override fun onResume() {
+        super.onResume()
+        loadFavorites()
+        showSelectedApps()
     }
 
     private fun showSelectedApps() {
+        selectedApps.sortBy { it.label }
         appsLayout.removeAllViews()
 
-        for ((index, app) in selectedApps.withIndex()) {
+        for (app in selectedApps) {
             val labelView = TextView(requireContext()).apply {
                 text = app.label
                 textSize = 16f
@@ -152,7 +104,7 @@ class HomeFragment : Fragment() {
                 setPadding(0, 16, 0, 16)
                 setOnClickListener {
                     val launchIntent = Intent().apply {
-                        component = android.content.ComponentName(app.packageName, app.className)
+                        component = ComponentName(app.packageName, app.className)
                         action = Intent.ACTION_MAIN
                         addCategory(Intent.CATEGORY_LAUNCHER)
                     }
@@ -162,17 +114,38 @@ class HomeFragment : Fragment() {
                     AlertDialog.Builder(context)
                         .setMessage("Remove ${app.label} from favorites?")
                         .setPositiveButton("Remove") { _, _ ->
-
-                            selectedApps.removeAt(index)
+                            selectedApps.remove(app)
+                            saveFavorites()
                             showSelectedApps()
+                            Toast.makeText(context, "${app.label} removed from favorites",
+                                            Toast.LENGTH_SHORT).show()
                         }
                         .setNegativeButton("Cancel", null)
                         .show()
-
                     true
                 }
             }
             appsLayout.addView(labelView)
+        }
+    }
+
+    private fun saveFavorites() {
+        val prefs = requireContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+        val serialized = selectedApps.joinToString("|") { "${it.label}::${it.packageName}::${it.className}" }
+        prefs.edit().putString(prefsKey, serialized).apply()
+    }
+
+    private fun loadFavorites() {
+        val prefs = requireContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+        val serialized = prefs.getString(prefsKey, "") ?: return
+        val entries = serialized.split("|").filter { it.contains("::") }
+
+        selectedApps.clear()
+        for (entry in entries) {
+            val parts = entry.split("::")
+            if (parts.size == 3) {
+                selectedApps.add(AppInfo(parts[0], parts[1], parts[2]))
+            }
         }
     }
 }

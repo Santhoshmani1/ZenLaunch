@@ -2,9 +2,13 @@ package com.simplelauncher
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.TextView
-import android.graphics.Color
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.RecyclerView
 
 class AppAdapter(private val context: Context, private var apps: List<AppInfo>) :
@@ -25,9 +29,6 @@ class AppAdapter(private val context: Context, private var apps: List<AppInfo>) 
         return AppViewHolder(textView)
     }
 
-    /**
-     * Updates the list of apps to be shown with new apps when an event like search is triggered
-     */
     fun updateList(newList: List<AppInfo>) {
         apps = newList
         notifyDataSetChanged()
@@ -37,12 +38,71 @@ class AppAdapter(private val context: Context, private var apps: List<AppInfo>) 
         val app = apps[position]
         holder.textView.text = app.label
         holder.textView.contentDescription = app.label
+
         holder.textView.setOnClickListener {
             val intent = Intent().apply {
                 setClassName(app.packageName, app.className)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
+        }
+
+        holder.textView.setOnLongClickListener {
+            showOptionsDialog(app)
+            true
+        }
+    }
+
+    private fun showOptionsDialog(app: AppInfo) {
+        val options = arrayOf("Add to Favorites", "App Info", "Uninstall")
+        AlertDialog.Builder(context)
+            .setTitle(app.label)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> addToFavorites(app)
+                    1 -> openAppInfo(app)
+                    2 -> uninstallApp(app)
+                }
+            }
+            .show()
+    }
+
+    private fun addToFavorites(app: AppInfo) {
+        val prefs = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
+        val key = "favorites"
+        val current = prefs.getString(key, "") ?: ""
+        val entry = "${app.label}::${app.packageName}::${app.className}"
+
+        val favorites = current.split("|").filter { it.isNotBlank() }.toMutableSet()
+
+        if (favorites.contains(entry)) {
+            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT).show()
+        } else {
+            favorites.add(entry)
+            prefs.edit().putString(key, favorites.sorted().joinToString("|")).apply()
+            Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openAppInfo(app: AppInfo) {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.parse("package:${app.packageName}")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
+    private fun uninstallApp(app: AppInfo) {
+        val uri = Uri.parse("package:${app.packageName}")
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = uri
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        if (intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
+        } else {
+            Toast.makeText(context, "Cannot uninstall ${app.label}", Toast.LENGTH_SHORT).show()
         }
     }
 

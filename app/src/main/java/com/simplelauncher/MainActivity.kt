@@ -32,12 +32,16 @@ class MainActivity : AppCompatActivity() {
             id = View.generateViewId()
             orientation = ViewPager2.ORIENTATION_HORIZONTAL
             adapter = ScreenSlidePagerAdapter(this@MainActivity)
-            setCurrentItem(0, false)
+
+            // Set to HomeFragment on fresh launch
+            if (savedInstanceState == null) {
+                setCurrentItem(0, false)
+            }
         }
 
         setContentView(viewPager)
 
-        // Back button handling, Do nothing when present on HomeFragment
+        // Back button handling
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (viewPager.currentItem != 0) {
@@ -47,9 +51,16 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Always show HomeFragment on screen unlock
+        if (::viewPager.isInitialized && viewPager.currentItem != 0) {
+            viewPager.setCurrentItem(0, false)
+        }
+    }
+
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
         override fun getItemCount() = 2
-
         override fun createFragment(position: Int): Fragment = when (position) {
             0 -> HomeFragment()
             1 -> AppListFragment()

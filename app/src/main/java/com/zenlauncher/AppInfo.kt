@@ -1,4 +1,4 @@
-package com.simplelauncher
+package com.zenlauncher
 
 /**
  * Represents basic information about an installed application.

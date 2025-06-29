@@ -38,4 +38,18 @@
             android:gravity="center_horizontal"
             android:padding="4dp" />
     </ScrollView>
+    <TextView
+        android:id="@+id/indexLetterOverlay"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="24dp"
+        android:background="#80000000"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        android:visibility="gone"
+        />
+
 </RelativeLayout>

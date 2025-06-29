@@ -1,4 +1,4 @@
-package com.simplelauncher
+package com.zenlauncher
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.simplelauncher
+package com.zenlauncher
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -25,16 +25,27 @@ class AppListFragment : Fragment() {
     private lateinit var originalList: List<AppInfo>
     private val letterPositionMap = mutableMapOf<Char, Int>()
 
+    val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val view = inflater.inflate(R.layout.activity_main, container, false)
-        val context = requireContext()
 
         recyclerView = view.findViewById(R.id.appRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        loadApps()
+        buildLetterIndexMap()
+        setupIndexBar(view)
+        setupSearch(view)
+
+        return view
+    }
+
+    private fun loadApps() {
+        val context = requireContext()
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
@@ -53,14 +64,12 @@ class AppListFragment : Fragment() {
         appList = originalList
         adapter = AppAdapter(context, appList)
         recyclerView.adapter = adapter
+    }
 
-        buildLetterIndexMap()
-        setupIndexBar(view)
-
-        val searchView = view.findViewById<SearchView>(R.id.appSearchView)
+    private fun setupSearch(root: View) {
+        val searchView = root.findViewById<SearchView>(R.id.appSearchView)
         searchView.isIconified = false
         searchView.queryHint = "Search apps"
-        searchView.clearFocus()
 
         val id = androidx.appcompat.R.id.search_src_text
         val searchEditText = searchView.findViewById<EditText>(id)
@@ -70,99 +79,113 @@ class AppListFragment : Fragment() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false
             override fun onQueryTextChange(newText: String?): Boolean {
-                val filtered = originalList.filter {
-                    it.label.contains(newText.orEmpty(), ignoreCase = true)
+                appList = if (newText.isNullOrBlank()) {
+                    originalList
+                } else {
+                    originalList.filter {
+                        it.label.contains(newText, ignoreCase = true)
+                    }
                 }
-                adapter.updateList(filtered)
-                appList = filtered
+                adapter.updateList(appList)
                 buildLetterIndexMap()
-                setupIndexBar(view)
                 return true
             }
         })
-
-        return view
     }
 
     private fun buildLetterIndexMap() {
         letterPositionMap.clear()
-        for ((i, app) in appList.withIndex()) {
+        appList.forEachIndexed { index, app ->
             val firstChar = app.label.firstOrNull()?.uppercaseChar() ?: '#'
-            if (!letterPositionMap.containsKey(firstChar)) {
-                letterPositionMap[firstChar] = i
-            }
+            letterPositionMap.putIfAbsent(firstChar, index)
         }
     }
 
     private fun animateLetter(view: TextView, targetSizeSp: Float, targetColor: Int) {
         val startSize = view.textSize / view.resources.displayMetrics.scaledDensity
-        val anim = ValueAnimator.ofFloat(startSize, targetSizeSp).setDuration(100)
-        anim.addUpdateListener {
-            val value = it.animatedValue as Float
-            view.setTextSize(TypedValue.COMPLEX_UNIT_SP, value)
+        ValueAnimator.ofFloat(startSize, targetSizeSp).apply {
+            duration = 80
+            addUpdateListener { view.setTextSize(TypedValue.COMPLEX_UNIT_SP, it.animatedValue as Float) }
+            start()
         }
-        anim.start()
-
-        ObjectAnimator.ofArgb(view, "textColor", view.currentTextColor, targetColor)
-            .setDuration(100)
-            .start()
+        ObjectAnimator.ofArgb(view, "textColor", view.currentTextColor, targetColor).setDuration(80).start()
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setupIndexBar(root: View) {
         val indexBar = root.findViewById<LinearLayout>(R.id.indexBar)
+        val overlay = root.findViewById<TextView>(R.id.indexLetterOverlay)
         indexBar.removeAllViews()
+        indexBar.setPadding(0, 40.dp, 0, 0)
 
         val letterViews = mutableListOf<TextView>()
-
         for (letter in 'A'..'Z') {
             val tv = TextView(requireContext()).apply {
                 text = letter.toString()
-                textSize = 14f
+                textSize = 10f
                 setTextColor(Color.LTGRAY)
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    0, 1f
+                    20.dp
                 )
             }
             letterViews.add(tv)
             indexBar.addView(tv)
         }
 
-        var lastSelectedIndex = -1
+        indexBar.setOnTouchListener { _, event ->
+            val y = event.y.toInt()
 
-        indexBar.setOnTouchListener { v, event ->
-            v.performClick()
-            val indexBarHeight = v.height
-            val y = event.y.coerceIn(0f, indexBarHeight.toFloat())
-            val letterHeight = indexBarHeight / letterViews.size
-            val touchedIndex = (y / letterHeight).toInt()
+            letterViews.forEachIndexed { index, tv ->
+                if (y in tv.top..tv.bottom) {
+                    val selectedLetter = tv.text.first()
 
-            if (touchedIndex in letterViews.indices && touchedIndex != lastSelectedIndex) {
-                val letter = letterViews[touchedIndex].text.first()
-                letterPositionMap[letter]?.let { pos ->
-                    recyclerView.smoothScrollToPosition(pos)
+                    overlay.text = selectedLetter.toString()
+                    overlay.visibility = View.VISIBLE
+
+                    letterPositionMap[selectedLetter]?.let { pos ->
+                        (recyclerView.layoutManager as LinearLayoutManager)
+                            .scrollToPositionWithOffset(pos, 0)
+                    }
+
+                    highlightAppsByLetter(selectedLetter)
+
+                    letterViews.forEachIndexed { i, letterTv ->
+                        animateLetter(letterTv, if (i == index) 12f else 9f, Color.LTGRAY)
+                    }
                 }
-
-                letterViews.forEachIndexed { i, tv ->
-                    animateLetter(tv,
-                        if (i == touchedIndex) 18f else 14f,
-                        if (i == touchedIndex) "#CCCCCC".toColorInt() else Color.LTGRAY
-                    )
-                }
-
-                lastSelectedIndex = touchedIndex
             }
 
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                letterViews.forEach {
-                    animateLetter(it, 14f, Color.LTGRAY)
-                }
-                lastSelectedIndex = -1
+                letterViews.forEach { animateLetter(it, 9f, Color.LTGRAY) }
+                overlay.visibility = View.GONE
+                resetAppHighlight()
             }
-
             true
+        }
+
+    }
+
+    private fun highlightAppsByLetter(letter: Char) {
+        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+        for (i in first..last) {
+            val holder = recyclerView.findViewHolderForAdapterPosition(i) ?: continue
+            val app = appList.getOrNull(i) ?: continue
+            val firstChar = app.label.firstOrNull()?.uppercaseChar()
+            holder.itemView.alpha = if (firstChar == letter) 1f else 0.3f
+        }
+    }
+
+    private fun resetAppHighlight() {
+        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+        val first = layoutManager.findFirstVisibleItemPosition()
+        val last = layoutManager.findLastVisibleItemPosition()
+        for (i in first..last) {
+            val holder = recyclerView.findViewHolderForAdapterPosition(i) ?: continue
+            holder.itemView.alpha = 1f
         }
     }
 }

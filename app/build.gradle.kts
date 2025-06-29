@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.simplelauncher"
+    namespace = "com.zenlauncher"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.simplelaucher"
+        applicationId = "com.zenlaucher"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.simplelauncher
+package com.zenlauncher
 
 import android.graphics.Color
 import android.os.Build

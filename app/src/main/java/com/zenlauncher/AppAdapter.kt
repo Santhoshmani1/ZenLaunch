@@ -1,4 +1,4 @@
-package com.simplelauncher
+package com.zenlauncher
 
 import android.content.Context
 import android.content.Intent
@@ -7,12 +7,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.recyclerview.widget.RecyclerView
-import androidx.core.net.toUri
 import androidx.core.content.edit
+import androidx.core.net.toUri
+import androidx.recyclerview.widget.RecyclerView
 
-class AppAdapter(private val context: Context, private var apps: List<AppInfo>) :
-    RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
+class AppAdapter(
+    private val context: Context,
+    private var apps: List<AppInfo>
+) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     inner class AppViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
 
@@ -38,7 +40,7 @@ class AppAdapter(private val context: Context, private var apps: List<AppInfo>) 
         val app = apps[position]
         holder.textView.text = app.label
         holder.textView.contentDescription = app.label
-
+        holder.itemView.alpha = 1f
         holder.textView.setOnClickListener {
             val intent = Intent().apply {
                 setClassName(app.packageName, app.className)
@@ -52,6 +54,7 @@ class AppAdapter(private val context: Context, private var apps: List<AppInfo>) 
             true
         }
     }
+
 
     private fun showOptionsDialog(app: AppInfo) {
         val options = arrayOf("Add to Favorites", "App Info", "Uninstall")
@@ -93,21 +96,21 @@ class AppAdapter(private val context: Context, private var apps: List<AppInfo>) 
     }
 
     private fun uninstallApp(app: AppInfo) {
-            val uri = "package:${app.packageName}".toUri()
-            val intent = Intent(Intent.ACTION_DELETE).apply {
-                data = uri
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-
-            val appInfo = context.packageManager.getApplicationInfo(app.packageName, 0)
-            val isSystemApp = (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-
-            if (intent.resolveActivity(context.packageManager) != null && !isSystemApp) {
-                context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
-            } else {
-                Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
-            }
+        val uri = "package:${app.packageName}".toUri()
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = uri
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+
+        val appInfo = context.packageManager.getApplicationInfo(app.packageName, 0)
+        val isSystemApp = (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+
+        if (!isSystemApp && intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
+        } else {
+            Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
+        }
+    }
 
     override fun getItemCount(): Int = apps.size
 }

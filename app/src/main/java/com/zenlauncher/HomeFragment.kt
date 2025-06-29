@@ -4,14 +4,26 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.Settings
-import android.view.*
-import android.widget.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Space
+import android.widget.TextClock
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class HomeFragment : Fragment() {
 
@@ -51,6 +63,51 @@ class HomeFragment : Fragment() {
             setPadding(48, 90, 48, 16)
         }
 
+        fun createCircularBackground(color: Int): GradientDrawable {
+            return GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(color)
+                setStroke(4, Color.LTGRAY)
+            }
+        }
+
+
+        val phoneIcon = ImageView(context).apply {
+            setImageResource(android.R.drawable.ic_menu_call)
+            setColorFilter(Color.WHITE)
+            imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+            setPadding(8, 8, 8, 8)
+            layoutParams = FrameLayout.LayoutParams(80, 80).apply {
+                gravity = Gravity.BOTTOM or Gravity.START
+                marginStart = 40
+                bottomMargin = 20
+            }
+            background = createCircularBackground(Color.BLACK)
+            rotation = 280f
+            setOnClickListener {
+                val intent = Intent(Intent.ACTION_DIAL)
+                startActivity(intent)
+            }
+        }
+
+        val cameraIcon = ImageView(context).apply {
+            setImageResource(android.R.drawable.ic_menu_camera)
+            setColorFilter(Color.WHITE)
+            imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+            setPadding(8, 8, 8, 8)
+            layoutParams = FrameLayout.LayoutParams(80, 80).apply {
+                gravity = Gravity.BOTTOM or Gravity.END
+                marginEnd = 40
+                bottomMargin = 20
+            }
+            background = createCircularBackground(Color.BLACK)
+            setOnClickListener {
+                val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+                startActivity(intent)
+            }
+        }
+
+
         // Favorite apps container
         appsLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -72,6 +129,8 @@ class HomeFragment : Fragment() {
         val rootLayout = FrameLayout(context).apply {
             setBackgroundColor(Color.BLACK)
             addView(verticalLayout)
+            addView(phoneIcon)
+            addView(cameraIcon)
         }
 
         clock.setOnClickListener {

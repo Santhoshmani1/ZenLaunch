@@ -5,11 +5,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.edit
-import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
+import com.zenlauncher.helpers.addToFavorites
+import com.zenlauncher.helpers.openAppInfo
+import com.zenlauncher.helpers.uninstallApp
 
 class AppAdapter(
     private val context: Context,
@@ -62,55 +62,14 @@ class AppAdapter(
             .setTitle(app.label)
             .setItems(options) { _, which ->
                 when (which) {
-                    0 -> addToFavorites(app)
-                    1 -> openAppInfo(app)
-                    2 -> uninstallApp(app)
+                    0 -> addToFavorites(context, app)
+                    1 -> openAppInfo(context,app)
+                    2 -> uninstallApp(context, app)
                 }
             }
             .show()
     }
 
-    private fun addToFavorites(app: AppInfo) {
-        val prefs = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
-        val key = "favorites"
-        val current = prefs.getString(key, "") ?: ""
-        val entry = "${app.label}::${app.packageName}::${app.className}"
-
-        val favorites = current.split("|").filter { it.isNotBlank() }.toMutableSet()
-
-        if (favorites.contains(entry)) {
-            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT).show()
-        } else {
-            favorites.add(entry)
-            prefs.edit { putString(key, favorites.sorted().joinToString("|")) }
-            Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun openAppInfo(app: AppInfo) {
-        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = "package:${app.packageName}".toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-    }
-
-    private fun uninstallApp(app: AppInfo) {
-        val uri = "package:${app.packageName}".toUri()
-        val intent = Intent(Intent.ACTION_DELETE).apply {
-            data = uri
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-
-        val appInfo = context.packageManager.getApplicationInfo(app.packageName, 0)
-        val isSystemApp = (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-
-        if (!isSystemApp && intent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
-        } else {
-            Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
-        }
-    }
 
     override fun getItemCount(): Int = apps.size
 }

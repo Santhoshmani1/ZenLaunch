@@ -3,6 +3,9 @@ package com.zenlauncher
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -13,9 +16,13 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
+import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -114,12 +121,77 @@ class AppListFragment : Fragment() {
         ObjectAnimator.ofArgb(view, "textColor", view.currentTextColor, targetColor).setDuration(80).start()
     }
 
+    private fun showSettingsOptions() {
+        val options = arrayOf("Deactivate Device Admin", "Share ZenLauncher", "Exit ZenLauncher")
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Settings")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> deactivateDeviceAdmin()
+                    1 -> shareApp()
+                    2 -> exitZenLauncher()
+                }
+            }
+            .show()
+    }
+
+    private fun deactivateDeviceAdmin() {
+        val dpm = requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as android.app.admin.DevicePolicyManager
+        val compName = ComponentName(requireContext(), com.zenlauncher.listener.DeviceAdmin::class.java)
+        if (dpm.isAdminActive(compName)) {
+            dpm.removeActiveAdmin(compName)
+        } else {
+            toast("Device Admin not active")
+        }
+    }
+
+    private fun shareApp() {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "ZenLauncher")
+            putExtra(Intent.EXTRA_TEXT, "Try ZenLauncher for a minimal, fast Android experience.")
+        }
+        startActivity(Intent.createChooser(intent, "Share via"))
+    }
+
+    private fun exitZenLauncher() {
+        activity?.finishAffinity()
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     private fun setupIndexBar(root: View) {
+        val parent = root.findViewById<LinearLayout>(R.id.indexBarContainer)
         val indexBar = root.findViewById<LinearLayout>(R.id.indexBar)
         val overlay = root.findViewById<TextView>(R.id.indexLetterOverlay)
         indexBar.removeAllViews()
-        indexBar.setPadding(0, 40.dp, 0, 0)
+        indexBar.setPadding(4.dp, 40.dp, 4.dp, 8.dp)
+
+        // Material settings icon
+        val settingsIcon = ImageView(requireContext()).apply {
+            setImageResource(R.drawable.ic_settings)
+            setColorFilter(Color.LTGRAY)
+            layoutParams = LinearLayout.LayoutParams(32.dp, 32.dp).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                setMargins(0, 0, 0, 8.dp)
+            }
+            background = ContextCompat.getDrawable(requireContext(), R.drawable.ripple_circle)
+            isClickable = true
+            isFocusable = true
+            setPadding(6.dp)
+
+            setOnClickListener {
+                animate().scaleX(1.1f).scaleY(1.1f).setDuration(80).withEndAction {
+                    animate().scaleX(1f).scaleY(1f).setDuration(80).start()
+                    showSettingsOptions()
+                }.start()
+            }
+        }
+        parent.addView(settingsIcon, 0)
 
         val letterViews = mutableListOf<TextView>()
         for (letter in 'A'..'Z') {
@@ -129,9 +201,11 @@ class AppListFragment : Fragment() {
                 setTextColor(Color.LTGRAY)
                 gravity = Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
                     20.dp
-                )
+                ).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                }
             }
             letterViews.add(tv)
             indexBar.addView(tv)
@@ -143,7 +217,6 @@ class AppListFragment : Fragment() {
             letterViews.forEachIndexed { index, tv ->
                 if (y in tv.top..tv.bottom) {
                     val selectedLetter = tv.text.first()
-
                     overlay.text = selectedLetter.toString()
                     overlay.visibility = View.VISIBLE
 
@@ -167,7 +240,6 @@ class AppListFragment : Fragment() {
             }
             true
         }
-
     }
 
     private fun highlightAppsByLetter(letter: Char) {

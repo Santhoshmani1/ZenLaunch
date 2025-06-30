@@ -1,5 +1,6 @@
 package com.zenlauncher
 
+import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,24 +13,19 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Space
-import android.widget.TextClock
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.zenlauncher.listener.DeviceAdmin
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
 class HomeFragment : Fragment() {
 
     private val selectedApps = mutableListOf<AppInfo>()
     private lateinit var appsLayout: LinearLayout
     private val prefsKey = "favorites"
+    private var lastTapTime: Long = 0 // For double-tap detection
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,7 +67,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         val phoneIcon = ImageView(context).apply {
             setImageResource(android.R.drawable.ic_menu_call)
             setColorFilter(Color.WHITE)
@@ -107,7 +102,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         // Favorite apps container
         appsLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -140,6 +134,15 @@ class HomeFragment : Fragment() {
             } else {
                 Toast.makeText(context, "Clock settings not available", Toast.LENGTH_SHORT).show()
             }
+        }
+
+        // Double-press anywhere to lock
+        rootLayout.setOnClickListener {
+            val now = System.currentTimeMillis()
+            if (now - lastTapTime < 400) { // Double-tap threshold
+                lockDevice()
+            }
+            lastTapTime = now
         }
 
         return rootLayout
@@ -178,8 +181,11 @@ class HomeFragment : Fragment() {
                             selectedApps.remove(app)
                             saveFavorites()
                             showSelectedApps()
-                            Toast.makeText(context, "${app.label} removed from favorites",
-                                            Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                "${app.label} removed from favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                         .setNegativeButton("Cancel", null)
                         .show()
@@ -192,7 +198,8 @@ class HomeFragment : Fragment() {
 
     private fun saveFavorites() {
         val prefs = requireContext().getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
-        val serialized = selectedApps.joinToString("|") { "${it.label}::${it.packageName}::${it.className}" }
+        val serialized =
+            selectedApps.joinToString("|") { "${it.label}::${it.packageName}::${it.className}" }
         prefs.edit().putString(prefsKey, serialized).apply()
     }
 
@@ -207,6 +214,25 @@ class HomeFragment : Fragment() {
             if (parts.size == 3) {
                 selectedApps.add(AppInfo(parts[0], parts[1], parts[2]))
             }
+        }
+    }
+
+    private fun lockDevice() {
+        val devicePolicyManager =
+            requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val compName = ComponentName(requireContext(), DeviceAdmin::class.java)
+
+        if (devicePolicyManager.isAdminActive(compName)) {
+            devicePolicyManager.lockNow()
+        } else {
+            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName)
+                putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    "Enable ZenLauncher double-tap to lock"
+                )
+            }
+            startActivity(intent)
         }
     }
 }

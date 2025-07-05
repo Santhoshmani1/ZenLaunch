@@ -19,7 +19,7 @@
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.Material3.Dark"
+            android:theme="@style/Theme.SimpleLauncher"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
             android:exported="true">

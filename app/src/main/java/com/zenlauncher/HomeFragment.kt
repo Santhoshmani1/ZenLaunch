@@ -59,14 +59,6 @@ class HomeFragment : Fragment() {
             setPadding(48, 90, 48, 16)
         }
 
-        fun createCircularBackground(color: Int): GradientDrawable {
-            return GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(color)
-                setStroke(4, Color.LTGRAY)
-            }
-        }
-
         val phoneIcon = ImageView(context).apply {
             setImageResource(android.R.drawable.ic_menu_call)
             setColorFilter(Color.WHITE)
@@ -77,7 +69,6 @@ class HomeFragment : Fragment() {
                 marginStart = 40
                 bottomMargin = 20
             }
-            background = createCircularBackground(Color.BLACK)
             rotation = 280f
             setOnClickListener {
                 val intent = Intent(Intent.ACTION_DIAL)
@@ -95,7 +86,6 @@ class HomeFragment : Fragment() {
                 marginEnd = 40
                 bottomMargin = 20
             }
-            background = createCircularBackground(Color.BLACK)
             setOnClickListener {
                 val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
                 startActivity(intent)

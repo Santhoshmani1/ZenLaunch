@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.zenlauncher.AppAdapter
 import com.zenlauncher.AppInfo
 import com.zenlauncher.R
+import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.helpers.setPaddingAll
 import com.zenlauncher.listener.DeviceAdmin
@@ -59,6 +60,8 @@ class AppListFragment : Fragment() {
         return view
     }
 
+    private val selectedApps = mutableListOf<AppInfo>()
+
     private fun loadAppsInBackground() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             val context = requireContext()
@@ -77,12 +80,23 @@ class AppListFragment : Fragment() {
             }
             appList = originalList
 
+            selectedApps.clear()
+            selectedApps.addAll(AppUtils.loadFavorites(context))
+
             withContext(Dispatchers.Main) {
-                adapter = AppAdapter(context, appList)
+                adapter = AppAdapter(context, appList, selectedApps) {
+                    refreshFavorites()
+                }
                 recyclerView.adapter = adapter
                 buildLetterIndexMap()
             }
         }
+    }
+
+    private fun refreshFavorites() {
+        selectedApps.clear()
+        selectedApps.addAll(AppUtils.loadFavorites(requireContext()))
+        Toast.makeText(requireContext(), "Favorites updated", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupSearch(root: View) {

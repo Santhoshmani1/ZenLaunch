@@ -1,0 +1,294 @@
+kotlin version: 2.0.21
+error message: org.jetbrains.kotlin.backend.common.BackendException: Backend Internal error: Exception during IR lowering
+File being compiled: C:/Users/pitak/AndroidStudioProjects/SimpleLaucher/app/src/main/java/com/zenlauncher/HomeFragment.kt
+The root cause java.lang.RuntimeException was thrown at: org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException(CodegenUtil.kt:253)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException$default(CodegenUtil.kt:236)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:65)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:52)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:38)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:27)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:14)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:62)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:371)
+	at org.jetbrains.kotlin.codegen.CodegenFactory.generateModule(CodegenFactory.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateModuleInFrontendIRMode(JvmIrCodegenFactory.kt:433)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.generateCodeFromIr(jvmCompilerPipeline.kt:246)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.compileModulesUsingFrontendIrAndLightTree(jvmCompilerPipeline.kt:142)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:148)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:43)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:103)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:49)
+	at org.jetbrains.kotlin.cli.common.CLITool.exec(CLITool.kt:101)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:464)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:73)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:506)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:423)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$9$compile(IncrementalCompilerRunner.kt:249)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:267)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:120)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:675)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:92)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1660)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:onCreateView visibility:public modality:OPEN <> ($this:com.zenlauncher.HomeFragment, inflater:android.view.LayoutInflater, container:android.view.ViewGroup?, savedInstanceState:android.os.Bundle?) returnType:android.view.View
+  overridden:
+    public open fun onCreateView (p0: @[EnhancedNullability] android.view.LayoutInflater, p1: @[EnhancedNullability] android.view.ViewGroup?, p2: @[EnhancedNullability] android.os.Bundle?): @[EnhancedNullability] android.view.View? declared in androidx.fragment.app.Fragment
+  $this: VALUE_PARAMETER name:<this> type:com.zenlauncher.HomeFragment
+  VALUE_PARAMETER name:inflater index:0 type:android.view.LayoutInflater
+  VALUE_PARAMETER name:container index:1 type:android.view.ViewGroup?
+  VALUE_PARAMETER name:savedInstanceState index:2 type:android.os.Bundle?
+  BLOCK_BODY
+    VAR name:context type:android.content.Context [val]
+      BLOCK type=android.content.Context origin=null
+        VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Any? [val]
+          CALL 'public final fun requireContext (): @[EnhancedNullability] android.content.Context [fake_override] declared in com.zenlauncher.HomeFragment' type=@[EnhancedNullability] android.content.Context origin=null
+            $this: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+        CALL 'public final fun checkNotNullExpressionValue (value: kotlin.Any?, expression: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+          value: GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=kotlin.Any? origin=null
+          expression: CONST String type=kotlin.String value="requireContext(...)"
+        GET_VAR 'val tmp0: kotlin.Any? [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=kotlin.Any? origin=null
+    VAR name:clock type:android.widget.TextClock [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.TextClock origin=null
+        <T>: android.widget.TextClock
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.TextClock' type=android.widget.TextClock origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextClock, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$0 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextClock, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    VAR name:dateText type:android.widget.TextView [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.TextView origin=null
+        <T>: android.widget.TextView
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.TextView' type=android.widget.TextView origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextView, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$1 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextView, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    VAR name:favTitle type:android.widget.TextView [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.TextView origin=null
+        <T>: android.widget.TextView
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.TextView' type=android.widget.TextView origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextView, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$2 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.TextView, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    VAR name:phoneIcon type:android.widget.ImageView [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.ImageView origin=null
+        <T>: android.widget.ImageView
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.ImageView' type=android.widget.ImageView origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.ImageView, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$5 (this$0: com.zenlauncher.HomeFragment): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.ImageView, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+            this$0: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+    VAR name:cameraIcon type:android.widget.ImageView [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.ImageView origin=null
+        <T>: android.widget.ImageView
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.ImageView' type=android.widget.ImageView origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.ImageView, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$8 (this$0: com.zenlauncher.HomeFragment): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.ImageView, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+            this$0: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+    SET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:appsLayout type:android.widget.LinearLayout? visibility:private' type=kotlin.Unit origin=null
+      receiver: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+      value: CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.LinearLayout origin=null
+        <T>: android.widget.LinearLayout
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.LinearLayout' type=android.widget.LinearLayout origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.LinearLayout, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$9 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.LinearLayout, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    VAR name:verticalLayout type:android.widget.FrameLayout [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.FrameLayout origin=null
+        <T>: android.widget.FrameLayout
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[EnhancedNullability] android.content.Context) declared in android.widget.FrameLayout' type=android.widget.FrameLayout origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.FrameLayout, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$12 ($clock: android.widget.TextClock, $context: android.content.Context, $dateText: android.widget.TextView, $favTitle: android.widget.TextView, this$0: com.zenlauncher.HomeFragment, $phoneIcon: android.widget.ImageView, $cameraIcon: android.widget.ImageView): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.FrameLayout, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+            $clock: GET_VAR 'val clock: android.widget.TextClock [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.TextClock origin=null
+            $context: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+            $dateText: GET_VAR 'val dateText: android.widget.TextView [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.TextView origin=null
+            $favTitle: GET_VAR 'val favTitle: android.widget.TextView [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.TextView origin=null
+            this$0: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+            $phoneIcon: GET_VAR 'val phoneIcon: android.widget.ImageView [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.ImageView origin=null
+            $cameraIcon: GET_VAR 'val cameraIcon: android.widget.ImageView [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.ImageView origin=null
+    VAR name:rootLayout type:android.widget.FrameLayout [val]
+      CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.FrameLayout origin=null
+        <T>: android.widget.FrameLayout
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[EnhancedNullability] android.content.Context) declared in android.widget.FrameLayout' type=android.widget.FrameLayout origin=null
+          p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.FrameLayout, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$13 ($verticalLayout: android.widget.FrameLayout): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.FrameLayout, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+            $verticalLayout: GET_VAR 'val verticalLayout: android.widget.FrameLayout [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.FrameLayout origin=null
+    CALL 'public open fun setOnClickListener (p0: @[EnhancedNullability] android.view.View.OnClickListener?): kotlin.Unit [fake_override] declared in android.widget.TextClock' type=kotlin.Unit origin=null
+      $this: GET_VAR 'val clock: android.widget.TextClock [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.TextClock origin=null
+      p0: BLOCK type=android.view.View.OnClickListener origin=LAMBDA
+        COMPOSITE type=kotlin.Unit origin=null
+        CALL 'public final fun <jvm-indy> <T> (dynamicCall: T of kotlin.jvm.internal.<jvm-indy>, bootstrapMethodHandle: kotlin.Any, vararg bootstrapMethodArguments: kotlin.Any): T of kotlin.jvm.internal.<jvm-indy> declared in kotlin.jvm.internal' type=android.view.View.OnClickListener origin=null
+          <T>: android.view.View.OnClickListener
+          dynamicCall: CALL 'public final fun onClick (p0: android.content.Context, p1: com.zenlauncher.HomeFragment): android.view.View.OnClickListener declared in kotlin.jvm.internal.invokeDynamic' type=android.view.View.OnClickListener origin=null
+            p0: GET_VAR 'val context: android.content.Context [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.content.Context origin=null
+            p1: GET_VAR '<this>: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView' type=com.zenlauncher.HomeFragment origin=null
+          bootstrapMethodHandle: CALL 'public final fun <jvm-method-handle> (tag: kotlin.Int, owner: kotlin.String, name: kotlin.String, descriptor: kotlin.String, isInterface: kotlin.Boolean): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+            tag: CONST Int type=kotlin.Int value=6
+            owner: CONST String type=kotlin.String value="java/lang/invoke/LambdaMetafactory"
+            name: CONST String type=kotlin.String value="metafactory"
+            descriptor: CONST String type=kotlin.String value="(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;"
+            isInterface: CONST Boolean type=kotlin.Boolean value=false
+          bootstrapMethodArguments: VARARG type=kotlin.Array<kotlin.Any> varargElementType=kotlin.Any
+            CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+              method: RAW_FUNCTION_REFERENCE 'public abstract fun onClick (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit declared in android.view.View.OnClickListener' type=kotlin.Any
+            RAW_FUNCTION_REFERENCE 'private final fun onCreateView$lambda$14 ($context: android.content.Context, this$0: com.zenlauncher.HomeFragment, it: @[FlexibleNullability] android.view.View?): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=kotlin.Any
+            CALL 'public final fun <jvm-original-method-type> (method: kotlin.Any): kotlin.Any declared in kotlin.jvm.internal' type=kotlin.Any origin=null
+              method: RAW_FUNCTION_REFERENCE 'public abstract fun onClick (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in kotlin.jvm.internal.invokeDynamic.<fake>' type=kotlin.Any
+    RETURN type=kotlin.Nothing from='public open fun onCreateView (inflater: android.view.LayoutInflater, container: android.view.ViewGroup?, savedInstanceState: android.os.Bundle?): android.view.View declared in com.zenlauncher.HomeFragment'
+      GET_VAR 'val rootLayout: android.widget.FrameLayout [val] declared in com.zenlauncher.HomeFragment.onCreateView' type=android.widget.FrameLayout origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:40)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:406)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:423)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:168)
+	at org.jetbrains.kotlin.backend.jvm.FileCodegen.lower(JvmPhases.kt:39)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseFactoriesKt.createFilePhase$lambda$4(PhaseFactories.kt:71)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseBuildersKt$createSimpleNamedCompilerPhase$1.phaseBody(PhaseBuilders.kt:69)
+	at org.jetbrains.kotlin.backend.common.phaser.SimpleNamedCompilerPhase.phaseBody(CompilerPhase.kt:226)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:62)
+	... 44 more
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN INLINE_LAMBDA name:onCreateView$lambda$12 visibility:private modality:FINAL <> ($receiver:android.widget.FrameLayout, $clock:android.widget.TextClock, $context:android.content.Context, $dateText:android.widget.TextView, $favTitle:android.widget.TextView, this$0:com.zenlauncher.HomeFragment, $phoneIcon:android.widget.ImageView, $cameraIcon:android.widget.ImageView) returnType:kotlin.Unit
+  $receiver: VALUE_PARAMETER name:$this$apply type:android.widget.FrameLayout
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$clock index:0 type:android.widget.TextClock
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$context index:1 type:android.content.Context
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$dateText index:2 type:android.widget.TextView
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$favTitle index:3 type:android.widget.TextView
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:this$0 index:4 type:com.zenlauncher.HomeFragment
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$phoneIcon index:5 type:android.widget.ImageView
+  VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$cameraIcon index:6 type:android.widget.ImageView
+  BLOCK_BODY
+    VAR name:$i$a$-apply-HomeFragment$onCreateView$verticalLayout$1 type:kotlin.Int [val]
+      CONST Int type=kotlin.Int value=0
+    SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:orientation type:kotlin.Int visibility:public [final,static] declared in android.R.attr' type=kotlin.Unit superQualifierSymbol=android.R.attr origin=EQ
+      value: CONST Int type=kotlin.Int value=1
+    SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:gravity type:kotlin.Int visibility:public [final,static] declared in android.R.attr' type=kotlin.Unit superQualifierSymbol=android.R.attr origin=EQ
+      value: CONST Int type=kotlin.Int value=49
+    CALL 'public open fun setPadding (p0: kotlin.Int, p1: kotlin.Int, p2: kotlin.Int, p3: kotlin.Int): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: CONST Int type=kotlin.Int value=0
+      p1: CONST Int type=kotlin.Int value=100
+      p2: CONST Int type=kotlin.Int value=0
+      p3: CONST Int type=kotlin.Int value=0
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: GET_VAR '$clock: android.widget.TextClock declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.TextClock origin=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.Space origin=null
+        <T>: android.widget.Space
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.Space' type=android.widget.Space origin=null
+          p0: GET_VAR '$context: android.content.Context declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.Space, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$12$lambda$10 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.Space, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: GET_VAR '$dateText: android.widget.TextView declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.TextView origin=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: CALL 'public final fun apply <T> (block: @[ExtensionFunctionType] kotlin.Function1<T of kotlin.StandardKt.apply, kotlin.Unit>): T of kotlin.StandardKt.apply [inline] declared in kotlin.StandardKt' type=android.widget.Space origin=null
+        <T>: android.widget.Space
+        $receiver: CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] android.content.Context?) declared in android.widget.Space' type=android.widget.Space origin=null
+          p0: GET_VAR '$context: android.content.Context declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.content.Context origin=null
+        block: BLOCK type=@[ExtensionFunctionType] kotlin.Function1<android.widget.Space, kotlin.Unit> origin=LAMBDA
+          COMPOSITE type=kotlin.Unit origin=null
+          FUNCTION_REFERENCE 'private final fun onCreateView$lambda$12$lambda$11 (): kotlin.Unit declared in com.zenlauncher.HomeFragment' type=@[ExtensionFunctionType] kotlin.Function1<android.widget.Space, kotlin.Unit> origin=INLINE_LAMBDA reflectionTarget=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: GET_VAR '$favTitle: android.widget.TextView declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.TextView origin=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: BLOCK type=android.widget.LinearLayout origin=FOLDED_ELVIS
+        WHEN type=android.widget.LinearLayout origin=FOLDED_ELVIS
+          BRANCH
+            if: COMPOSITE type=kotlin.Boolean origin=null
+              VAR IR_TEMPORARY_VARIABLE name:tmp0 type:android.widget.LinearLayout? [val]
+                GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:appsLayout type:android.widget.LinearLayout? visibility:private' type=android.widget.LinearLayout? origin=null
+                  receiver: GET_VAR 'this$0: com.zenlauncher.HomeFragment declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=com.zenlauncher.HomeFragment origin=null
+              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                  arg0: GET_VAR 'val tmp0: android.widget.LinearLayout? [val] declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.LinearLayout? origin=null
+                  arg1: CONST Null type=kotlin.Nothing? value=null
+            then: GET_VAR 'val tmp0: android.widget.LinearLayout? [val] declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.LinearLayout? origin=null
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value=true
+            then: BLOCK type=kotlin.Unit origin=null
+              CALL 'public final fun throwUninitializedPropertyAccessException (propertyName: kotlin.String): kotlin.Unit declared in kotlin.jvm.internal.Intrinsics' type=kotlin.Unit origin=null
+                propertyName: CONST String type=kotlin.String value="appsLayout"
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: GET_VAR '$phoneIcon: android.widget.ImageView declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.ImageView origin=null
+    CALL 'public open fun addView (p0: @[FlexibleNullability] android.view.View?): kotlin.Unit [fake_override] declared in android.widget.FrameLayout' type=kotlin.Unit origin=null
+      $this: GET_VAR '$this$apply: android.widget.FrameLayout declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.FrameLayout origin=null
+      p0: GET_VAR '$cameraIcon: android.widget.ImageView declared in com.zenlauncher.HomeFragment.onCreateView$lambda$12' type=android.widget.ImageView origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrSourceCompilerForInline.generateLambdaBody(IrSourceCompilerForInline.kt:67)
+	at org.jetbrains.kotlin.codegen.inline.ExpressionLambda.generateLambdaBody(LambdaInfo.kt:72)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrInlineCodegen.genValueAndPut(IrInlineCodegen.kt:100)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:790)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitVariable(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.declarations.IrVariable.accept(IrVariable.kt:36)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 54 more
+Caused by: java.lang.AssertionError: access of const val: SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:orientation type:kotlin.Int visibility:public [final,static] declared in android.R.attr' type=kotlin.Unit superQualifierSymbol=android.R.attr origin=EQ
+  value: CONST Int type=kotlin.Int value=1
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:861)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitSetField(IrElementVisitor.kt:206)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:908)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrSetField.accept(IrSetField.kt:21)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 71 more
+
+

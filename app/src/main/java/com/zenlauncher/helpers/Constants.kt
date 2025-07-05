@@ -6,7 +6,7 @@ object Constants {
 
     const val APP_TITLE = "Zen Launcher"
     const val SEARCH_APPS_HINT = "Search apps"
-    val APP_OPTIONS = arrayOf("Add to Favorites", "App Info", "Uninstall")
+    val APP_OPTIONS = arrayOf("Add to Favorites", "Rename", "App Info", "Uninstall")
 
     object Intents {
         const val SHARE_VIA = "Share via"
@@ -45,7 +45,7 @@ object Constants {
         const val SPACE_SMALL = 12
         const val SPACE_LARGE = 120
         const val APP_LABEL_TEXT_SIZE = 18f
-        const val APP_LABEL_PADDING_V = 35
+        const val APP_LABEL_PADDING_V = 25
         const val APPS_LAYOUT_PADDING_H = 48
 
         const val ICON_MARGIN_SIDE = 40

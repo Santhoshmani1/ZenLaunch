@@ -12,7 +12,9 @@ import com.zenlauncher.helpers.setPaddingAll
 
 class AppAdapter(
     private val context: Context,
-    private var apps: List<AppInfo>
+    private var apps: List<AppInfo>,
+    private val selectedApps: MutableList<AppInfo> = mutableListOf(),
+    private val onUpdated: () -> Unit = {}
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     inner class AppViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
@@ -40,10 +42,18 @@ class AppAdapter(
         holder.textView.text = app.label
         holder.textView.contentDescription = app.label
         holder.itemView.alpha = 1f
-        holder.textView.setOnClickListener { launchApp(context, app) }
+
+        holder.textView.setOnClickListener {
+            launchApp(context, app)
+        }
 
         holder.textView.setOnLongClickListener {
-            showOptionsDialog(context, app)
+            showOptionsDialog(context, app, selectedApps) { updatedApp ->
+                apps = apps.toMutableList().apply {
+                    this[position] = updatedApp
+                }
+                notifyItemChanged(position)
+            }
             true
         }
     }

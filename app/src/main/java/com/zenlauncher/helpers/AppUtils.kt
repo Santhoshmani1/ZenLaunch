@@ -1,52 +1,132 @@
 package com.zenlauncher.helpers
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.zenlauncher.AppInfo
 
-fun addToFavorites(context: Context, app: AppInfo) {
-    val prefs = context.getSharedPreferences("launcher_prefs", Context.MODE_PRIVATE)
-    val key = "favorites"
-    val current = prefs.getString(key, "") ?: ""
-    val entry = "${app.label}::${app.packageName}::${app.className}"
+object AppUtils {
 
-    val favorites = current.split("|").filter { it.isNotBlank() }.toMutableSet()
+    private const val DELIMITER = "|"
+    private const val ENTRY_SEPARATOR = "::"
 
-    if (favorites.contains(entry)) {
-        Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT).show()
-    } else {
-        favorites.add(entry)
-        prefs.edit { putString(key, favorites.sorted().joinToString("|")) }
-        Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
-    }
-}
+    fun addToFavorites(context: Context, app: AppInfo) {
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val current = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: ""
+        val entry = "${app.label}$ENTRY_SEPARATOR${app.packageName}$ENTRY_SEPARATOR${app.className}"
 
+        val favorites = current.split(DELIMITER).filter { it.isNotBlank() }.toMutableSet()
 
-fun openAppInfo(context: Context, app: AppInfo) {
-    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-    intent.data = "package:${app.packageName}".toUri()
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(intent)
-}
-
-
-fun uninstallApp(context:Context, app: AppInfo) {
-    val uri = "package:${app.packageName}".toUri()
-    val intent = Intent(Intent.ACTION_DELETE).apply {
-        data = uri
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (!favorites.add(entry)) {
+            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            prefs.edit {
+                putString(
+                    Constants.Prefs.FAVORITES_KEY,
+                    favorites.sorted().joinToString(DELIMITER)
+                )
+            }
+            Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    val appInfo = context.packageManager.getApplicationInfo(app.packageName, 0)
-    val isSystemApp = (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+    fun openAppInfo(context: Context, app: AppInfo) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = "package:${app.packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
 
-    if (!isSystemApp && intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
-    } else {
-        Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
+    fun uninstallApp(context: Context, app: AppInfo) {
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = "package:${app.packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        val pm = context.packageManager
+        val appInfo = pm.getInstalledApplications(0).find { it.packageName == app.packageName }
+        val isSystemApp = appInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
+
+        if (!isSystemApp && intent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
+        } else {
+            Toast.makeText(
+                context,
+                "System app ${app.label} cannot be uninstalled",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    fun launchApp(context: Context, app: AppInfo) {
+        val intent = Intent().apply {
+            setClassName(app.packageName, app.className)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
+    fun showOptionsDialog(
+        context: Context,
+        app: AppInfo,
+    ) {
+        AlertDialog.Builder(context)
+            .setTitle(app.label)
+            .setItems(Constants.APP_OPTIONS) { _, which ->
+                when (which) {
+                    0 -> addToFavorites(context, app)
+                    1 -> openAppInfo(context, app)
+                    2 -> uninstallApp(context, app)
+                }
+            }
+            .show()
+    }
+
+    fun saveFavorites(context: Context, favorites: List<AppInfo>) {
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val serialized = favorites.joinToString(DELIMITER) {
+            "${it.label}$ENTRY_SEPARATOR${it.packageName}$ENTRY_SEPARATOR${it.className}"
+        }
+        prefs.edit { putString(Constants.Prefs.FAVORITES_KEY, serialized) }
+    }
+
+    fun loadFavorites(context: Context): List<AppInfo> {
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val serialized = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: return emptyList()
+        if (serialized.isBlank()) return emptyList()
+        return serialized.split(DELIMITER).mapNotNull { entry ->
+            entry.split(ENTRY_SEPARATOR).takeIf { it.size == 3 }?.let { (label, pkg, className) ->
+                AppInfo(label, pkg, className)
+            }
+        }
+    }
+
+    fun confirmAndRemoveFromFavorites(
+        context: Context,
+        app: AppInfo,
+        selectedApps: MutableList<AppInfo>,
+        onUpdated: () -> Unit
+    ) {
+        AlertDialog.Builder(context)
+            .setMessage("Remove ${app.label} from favorites?")
+            .setPositiveButton("Remove") { _, _ ->
+                selectedApps.remove(app)
+                saveFavorites(context, selectedApps)
+                onUpdated()
+                Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

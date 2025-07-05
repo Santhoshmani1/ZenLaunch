@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.zenlauncher.ui.AppListFragment
+import com.zenlauncher.ui.HomeFragment
 
 class MainActivity : AppCompatActivity() {
 

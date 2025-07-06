@@ -8,6 +8,7 @@ object Constants {
     const val SEARCH_APPS_HINT = "Search apps"
     val APP_OPTIONS = arrayOf("Add to Favorites", "Rename", "App Info", "Uninstall")
 
+    const val GITHUB_REPO = "https://github.com/santhoshmani1/Zenlaunch"
     object Intents {
         const val SHARE_VIA = "Share via"
         const val DEVICE_ADMIN_INFO = "Enable Zen Launcher double-tap to lock"
@@ -69,9 +70,24 @@ object Constants {
     }
 
     object Settings {
-        const val TITLE = "Settings"
-        val OPTIONS = arrayOf("Deactivate Device Admin", "Share ZenLauncher", "Exit ZenLauncher")
+        const val TITLE = "Zen Launcher Settings"
+        const val PADDING_HORIZONTAL = 40
+        const val PADDING_VERTICAL = 80
+        const val TEXT_PADDING_ALL = 10
+        const val TEXT_COLOR_WHITE = 0xFFFFFFFF.toInt()
+        const val TEXT_COLOR_SUBTLE = 0xFFCCCCCC.toInt()
+        const val BACKGROUND_TRANSPARENT = 0x00000000
+        const val TEXT_SIZE_OPTION = 16f
+        const val TEXT_SIZE_HEADER = 18f
+
+        // Spacing values
+        const val SPACING_SMALL = 20
+        const val SPACING_MEDIUM = 40
+        const val SPACING_LARGE = 60
+        const val SPACING_XLARGE = 80
+        const val SPACING_XXLARGE = 120
     }
+
 
 
     object Texts {

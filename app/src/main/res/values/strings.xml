@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">Zen Launch</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="please_turn_on_double_tap_to_unlock">Please turn on double tap to lock</string>
+    <string name="favourites">Favourites</string>
 </resources>

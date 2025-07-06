@@ -1,5 +1,6 @@
 package com.zenlauncher
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.view.ViewGroup
@@ -32,6 +33,7 @@ class AppAdapter(
         return AppViewHolder(textView)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateList(newList: List<AppInfo>) {
         apps = newList
         notifyDataSetChanged()
@@ -43,9 +45,7 @@ class AppAdapter(
         holder.textView.contentDescription = app.label
         holder.itemView.alpha = 1f
 
-        holder.textView.setOnClickListener {
-            launchApp(context, app)
-        }
+        holder.textView.setOnClickListener { launchApp(context, app) }
 
         holder.textView.setOnLongClickListener {
             showOptionsDialog(context, app, selectedApps) { updatedApp ->
@@ -53,6 +53,7 @@ class AppAdapter(
                     this[position] = updatedApp
                 }
                 notifyItemChanged(position)
+                onUpdated()
             }
             true
         }

@@ -68,8 +68,6 @@ object AppUtils {
         context.startActivity(intent)
     }
 
-
-
     fun renameApp(
         context: Context,
         app: AppInfo,

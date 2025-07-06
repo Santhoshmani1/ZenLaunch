@@ -31,8 +31,8 @@ object Constants {
     }
 
     object Sizes {
-        const val ICON_WIDTH = 80
-        const val ICON_HEIGHT = 80
+        const val ICON_WIDTH = 90
+        const val ICON_HEIGHT = 90
         const val ICON_PADDING = 8
 
         const val CLOCK_TEXT_SIZE = 36f

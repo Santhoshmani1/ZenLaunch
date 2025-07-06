@@ -1,6 +1,5 @@
 package com.zenlauncher.ui
 
-import android.R
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -13,13 +12,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.Space
-import android.widget.TextClock
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import com.zenlauncher.AppInfo
 import com.zenlauncher.helpers.AppUtils
@@ -43,7 +36,6 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View = FrameLayout(requireContext()).apply {
         setBackgroundColor(Color.BLACK)
-
         val context = requireContext()
 
         val clock = TextClock(context).apply {
@@ -73,7 +65,7 @@ class HomeFragment : Fragment() {
         }
 
         val favTitle = TextView(context).apply {
-            text = "Favourites"
+            setText(com.zenlauncher.R.string.favourites)
             textSize = Constants.Sizes.FAV_TITLE_TEXT_SIZE
             setTextColor(Color.LTGRAY)
             setPadding(
@@ -111,21 +103,23 @@ class HomeFragment : Fragment() {
         addView(
             createQuickAccessIcon(
                 context,
-                R.drawable.ic_menu_call,
+                android.R.drawable.sym_action_call,
                 Gravity.BOTTOM or Gravity.START,
                 rotation = 280f
             ) {
                 startActivity(Intent(Intent.ACTION_DIAL))
-            })
+            }
+        )
 
         addView(
             createQuickAccessIcon(
                 context,
-                R.drawable.ic_menu_camera,
+                android.R.drawable.ic_menu_camera,
                 Gravity.BOTTOM or Gravity.END
             ) {
                 startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
-            })
+            }
+        )
 
         setOnClickListener {
             val now = System.currentTimeMillis()

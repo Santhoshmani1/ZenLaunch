@@ -1,10 +1,10 @@
 package com.zenlauncher.ui
 
-import android.app.AlertDialog
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
+import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
@@ -29,7 +29,6 @@ import com.zenlauncher.R
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.helpers.setPaddingAll
-import com.zenlauncher.listener.DeviceAdmin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,14 +95,12 @@ class AppListFragment : Fragment() {
     private fun refreshFavorites() {
         selectedApps.clear()
         selectedApps.addAll(AppUtils.loadFavorites(requireContext()))
-        Toast.makeText(requireContext(), "Favorites updated", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupSearch(root: View) {
         val searchView = root.findViewById<SearchView>(R.id.appSearchView).apply {
             isIconified = false
             queryHint = Constants.SEARCH_APPS_HINT
-
             findViewById<EditText>(androidx.appcompat.R.id.search_src_text).apply {
                 setHintTextColor(Color.GRAY)
                 setTextColor(Color.WHITE)
@@ -132,6 +129,7 @@ class AppListFragment : Fragment() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupIndexBar(root: View) {
         val parent = root.findViewById<LinearLayout>(R.id.indexBarContainer)
         val indexBar = root.findViewById<LinearLayout>(R.id.indexBar)
@@ -168,9 +166,10 @@ class AppListFragment : Fragment() {
             indexBar.addView(tv)
         }
 
-        indexBar.setOnTouchListener { e, event ->
+
+        indexBar.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                e.performClick()
+                v.performClick()
             }
             val y = event.y.toInt()
             val touchedLetterView = letterViews.find { y in it.top..it.bottom }
@@ -207,6 +206,7 @@ class AppListFragment : Fragment() {
             }
             true
         }
+
     }
 
     private fun highlightVisibleAppsByLetter(letter: Char) {
@@ -223,47 +223,49 @@ class AppListFragment : Fragment() {
         for (i in 0 until recyclerView.childCount) {
             recyclerView.getChildAt(i)?.animate()
                 ?.alpha(1f)
-                ?.setDuration(150)
+                ?.setDuration(Constants.Animation.DURATION_MS)
                 ?.start()
         }
     }
 
-    private fun showSettingsOptions() {
-        AlertDialog.Builder(requireContext())
-            .setTitle(Constants.Settings.TITLE)
-            .setItems(Constants.Settings.OPTIONS) { _, which ->
-                when (which) {
-                    0 -> deactivateDeviceAdmin()
-                    1 -> shareApp()
-                    2 -> activity?.finishAffinity()
+    private val uninstallReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_PACKAGE_REMOVED) {
+                val data = intent.data ?: return
+                val packageName = data.schemeSpecificPart ?: return
+
+                appList = appList.filter { it.packageName != packageName }
+                originalList = originalList.filter { it.packageName != packageName }
+
+                val removedFromFavorites = selectedApps.removeAll { it.packageName == packageName }
+
+                // Save updated favorites persistently
+                if (removedFromFavorites) {
+                    AppUtils.saveFavorites(requireContext(), selectedApps)
                 }
+
+                adapter.updateList(appList)
+
             }
-            .show()
-    }
-
-    private fun deactivateDeviceAdmin() {
-        val dpm =
-            requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-        val compName =
-            ComponentName(requireContext(), DeviceAdmin::class.java)
-        if (dpm.isAdminActive(compName)) {
-            dpm.removeActiveAdmin(compName)
-        } else {
-            Toast.makeText(
-                requireContext(),
-                Constants.Toasts.DEVICE_ADMIN_INACTIVE,
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
-    private fun shareApp() {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, Constants.APP_TITLE)
-            putExtra(Intent.EXTRA_TEXT, Constants.Texts.SHARE_TEXT)
+    override fun onStart() {
+        super.onStart()
+        val filter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply {
+            addDataScheme("package")
         }
-        startActivity(Intent.createChooser(intent, Constants.Intents.SHARE_VIA))
+        requireContext().registerReceiver(uninstallReceiver, filter)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        requireContext().unregisterReceiver(uninstallReceiver)
+    }
+
+
+    private fun showSettingsOptions() {
+        startActivity(Intent(requireContext(), SettingsActivity::class.java))
     }
 
     private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()

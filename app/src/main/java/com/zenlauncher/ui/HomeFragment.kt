@@ -1,6 +1,8 @@
 package com.zenlauncher.ui
 
 import android.R
+import android.app.admin.DevicePolicyManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -22,8 +24,8 @@ import androidx.fragment.app.Fragment
 import com.zenlauncher.AppInfo
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
-import com.zenlauncher.helpers.lockDevice
 import com.zenlauncher.helpers.setPaddingAll
+import com.zenlauncher.listener.DeviceAdmin
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -128,9 +130,28 @@ class HomeFragment : Fragment() {
         setOnClickListener {
             val now = System.currentTimeMillis()
             if (now - lastTapTime < Constants.Sizes.DOUBLE_TAP_THRESHOLD_MS) {
-                lockDevice(context)
+                lockDevice()
             }
             lastTapTime = now
+        }
+    }
+
+    private fun lockDevice() {
+        val devicePolicyManager =
+            requireContext().getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
+        val compName = ComponentName(requireContext(), DeviceAdmin::class.java)
+
+        if (devicePolicyManager.isAdminActive(compName)) {
+            devicePolicyManager.lockNow()
+        } else {
+            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+                putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName)
+                putExtra(
+                    DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+                    Constants.Intents.DEVICE_ADMIN_INFO
+                )
+            }
+            startActivity(intent)
         }
     }
 

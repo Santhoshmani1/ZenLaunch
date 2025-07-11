@@ -46,7 +46,8 @@ class AppListFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.activity_main, container, false)
+        val view = inflater.inflate(R.layout.fragment_app_list, container,
+            false)
 
         recyclerView = view.findViewById(R.id.appRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -69,22 +70,24 @@ class AppListFragment : Fragment() {
             val launchableApps = pm.queryIntentActivities(intent, 0)
                 .sortedBy { it.loadLabel(pm).toString().uppercase() }
 
-            originalList = launchableApps.map {
+            val apps = launchableApps.map {
                 AppInfo(
                     it.loadLabel(pm).toString(),
                     it.activityInfo.packageName,
                     it.activityInfo.name
                 )
             }
-            appList = originalList
 
-            selectedApps.clear()
-            selectedApps.addAll(AppUtils.loadFavorites(context))
+            val favorites = AppUtils.loadFavorites(context)
 
             withContext(Dispatchers.Main) {
-                adapter = AppAdapter(context, appList, selectedApps) {
-                    refreshFavorites()
-                }
+                originalList = apps
+                appList = apps
+
+                selectedApps.clear()
+                selectedApps.addAll(favorites)
+
+                adapter = AppAdapter(context, appList, selectedApps) { refreshFavorites() }
                 recyclerView.adapter = adapter
                 buildLetterIndexMap()
             }
@@ -179,23 +182,8 @@ class AppListFragment : Fragment() {
 
                 letterPositionMap[letter]?.let { startPos ->
                     val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    val endPosExclusive = (startPos until appList.size).indexOfFirst {
-                        appList[it].label.firstOrNull()?.uppercaseChar() != letter
-                    }.let { if (it == -1) appList.size else startPos + it }
-
-                    val endPos = endPosExclusive - 1
-                    val visibleCount = layoutManager.findLastVisibleItemPosition() -
-                            layoutManager.findFirstVisibleItemPosition() + 1
-
-                    val groupSize = endPos - startPos + 1
-                    val desiredPosition = if (groupSize < visibleCount) {
-                        (startPos + groupSize / 2).coerceAtLeast(0)
-                    } else {
-                        startPos
-                    }
-
                     highlightVisibleAppsByLetter(letter)
-                    layoutManager.scrollToPositionWithOffset(desiredPosition, 0)
+                    layoutManager.scrollToPositionWithOffset(startPos, 0)
                 }
             }
 

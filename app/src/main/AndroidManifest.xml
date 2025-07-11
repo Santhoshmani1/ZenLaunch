@@ -22,7 +22,6 @@
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
             android:configChanges="orientation|uiMode"
-            android:clearTaskOnLaunch="true"
             android:stateNotNeeded="true"
             android:exported="true">
             <intent-filter>

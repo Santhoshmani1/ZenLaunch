@@ -44,10 +44,8 @@ class MainActivity : AppCompatActivity() {
         // Back button handling
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (viewPager.currentItem != 0) {
-                    viewPager.currentItem = 0
-                } else {
-                    finish()
+                if (viewPager.currentItem != 0){
+                    viewPager.setCurrentItem(0, true)
                 }
             }
         })

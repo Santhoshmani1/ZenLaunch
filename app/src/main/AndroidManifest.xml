@@ -7,7 +7,6 @@
     <uses-permission
         android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -19,9 +18,12 @@
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.SimpleLauncher"
+            android:theme="@style/Theme.Material3.Dark"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
+            android:configChanges="orientation|uiMode"
+            android:clearTaskOnLaunch="true"
+            android:stateNotNeeded="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,8 +32,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".ui.SettingsActivity"
+            android:name=".ui.screens.SettingsActivity"
             android:exported="true"
             android:theme="@style/Theme.SimpleLauncher" />
 

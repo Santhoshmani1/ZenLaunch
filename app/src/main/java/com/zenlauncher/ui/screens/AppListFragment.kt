@@ -1,4 +1,4 @@
-package com.zenlauncher.ui
+package com.zenlauncher.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver

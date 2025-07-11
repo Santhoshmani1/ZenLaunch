@@ -1,10 +1,12 @@
-package com.zenlauncher.ui
+package com.zenlauncher.ui.screens
 
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
@@ -12,9 +14,16 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.Space
+import android.widget.TextClock
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.zenlauncher.AppInfo
+import com.zenlauncher.R
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.helpers.setPaddingAll
@@ -65,7 +74,7 @@ class HomeFragment : Fragment() {
         }
 
         val favTitle = TextView(context).apply {
-            setText(com.zenlauncher.R.string.favourites)
+            setText(R.string.favourites)
             textSize = Constants.Sizes.FAV_TITLE_TEXT_SIZE
             setTextColor(Color.LTGRAY)
             setPadding(
@@ -103,9 +112,8 @@ class HomeFragment : Fragment() {
         addView(
             createQuickAccessIcon(
                 context,
-                android.R.drawable.sym_action_call,
+                com.google.android.material.R.drawable.ic_call_answer,
                 Gravity.BOTTOM or Gravity.START,
-                rotation = 280f
             ) {
                 startActivity(Intent(Intent.ACTION_DIAL))
             }
@@ -114,10 +122,21 @@ class HomeFragment : Fragment() {
         addView(
             createQuickAccessIcon(
                 context,
-                android.R.drawable.ic_menu_camera,
+            R.drawable.ic_camera,
                 Gravity.BOTTOM or Gravity.END
             ) {
-                startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
+                val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+                val packageManager = requireContext().packageManager
+                val cameraApps = packageManager.queryIntentActivities(intent, 0)
+                if (cameraApps.isNotEmpty()) {
+                    val resolvedActivity = cameraApps[0].activityInfo
+                    intent.setClassName(resolvedActivity.packageName,
+                        resolvedActivity.name)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(requireContext(),
+                        "No camera app available", Toast.LENGTH_SHORT).show()
+                }
             }
         )
 
@@ -157,11 +176,11 @@ class HomeFragment : Fragment() {
         context: Context,
         iconResId: Int,
         gravity: Int,
-        rotation: Float = 0f,
         onClick: () -> Unit
     ) = ImageView(context).apply {
         setImageResource(iconResId)
-        setColorFilter(Color.WHITE)
+        imageTintList = ColorStateList.valueOf(Color.WHITE)
+        imageTintMode = PorterDuff.Mode.SRC_IN
         setPaddingAll(Constants.Sizes.ICON_PADDING)
         layoutParams = FrameLayout.LayoutParams(
             Constants.Sizes.ICON_WIDTH,
@@ -172,7 +191,7 @@ class HomeFragment : Fragment() {
             marginEnd = Constants.Sizes.ICON_MARGIN_SIDE
             bottomMargin = Constants.Sizes.ICON_MARGIN_BOTTOM
         }
-        this.rotation = rotation
+        setColorFilter(Color.WHITE)
         setOnClickListener { onClick() }
     }
 

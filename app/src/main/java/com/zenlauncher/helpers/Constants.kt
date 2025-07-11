@@ -73,10 +73,7 @@ object Constants {
         const val TITLE = "Zen Launcher Settings"
         const val PADDING_HORIZONTAL = 40
         const val PADDING_VERTICAL = 80
-        const val TEXT_PADDING_ALL = 10
-        const val TEXT_COLOR_WHITE = 0xFFFFFFFF.toInt()
-        const val TEXT_COLOR_SUBTLE = 0xFFCCCCCC.toInt()
-        const val BACKGROUND_TRANSPARENT = 0x00000000
+        const val TEXT_PADDING_ALL = 5
         const val TEXT_SIZE_OPTION = 16f
         const val TEXT_SIZE_HEADER = 18f
 
@@ -91,7 +88,8 @@ object Constants {
 
 
     object Texts {
-        const val SHARE_TEXT = "Try ZenLauncher for a minimal, fast Android experience."
+        const val SHARE_TEXT = "Try ZenLauncher for a minimal, fast Android experience. " +
+                "https://github.com/Santhoshmani1/ZenLauch"
     }
 
     object Toasts {

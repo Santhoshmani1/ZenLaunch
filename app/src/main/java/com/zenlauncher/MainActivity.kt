@@ -4,7 +4,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.WindowInsetsController
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -31,15 +30,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        viewPager = ViewPager2(this).apply {
-            id = View.generateViewId()
-            adapter = ScreenSlidePagerAdapter(this@MainActivity)
+        setContentView(R.layout.activity_main)
+        viewPager = findViewById(R.id.viewPager)
+        viewPager.adapter = ScreenSlidePagerAdapter(this)
+        viewPager.setCurrentItem(0, false)
 
-            // Always start with HomeFragment
-            setCurrentItem(0, false)
-        }
-
-        setContentView(viewPager)
 
         // Back button handling
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

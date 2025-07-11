@@ -1,5 +1,6 @@
 package com.zenlauncher
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -11,8 +12,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.zenlauncher.ui.AppListFragment
-import com.zenlauncher.ui.HomeFragment
+import com.zenlauncher.ui.screens.AppListFragment
+import com.zenlauncher.ui.screens.HomeFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -32,13 +33,10 @@ class MainActivity : AppCompatActivity() {
 
         viewPager = ViewPager2(this).apply {
             id = View.generateViewId()
-            orientation = ViewPager2.ORIENTATION_HORIZONTAL
             adapter = ScreenSlidePagerAdapter(this@MainActivity)
 
-            // Set to HomeFragment on fresh launch
-            if (savedInstanceState == null) {
-                setCurrentItem(0, false)
-            }
+            // Always start with HomeFragment
+            setCurrentItem(0, false)
         }
 
         setContentView(viewPager)
@@ -48,6 +46,8 @@ class MainActivity : AppCompatActivity() {
             override fun handleOnBackPressed() {
                 if (viewPager.currentItem != 0) {
                     viewPager.currentItem = 0
+                } else {
+                    finish()
                 }
             }
         })
@@ -55,18 +55,37 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Always show HomeFragment on screen unlock
+        if (::viewPager.isInitialized && viewPager.currentItem != 0) {
+            viewPager.setCurrentItem(0, false)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
         if (::viewPager.isInitialized && viewPager.currentItem != 0) {
             viewPager.setCurrentItem(0, false)
         }
     }
 
     private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount() = 2
-        override fun createFragment(position: Int): Fragment = when (position) {
-            0 -> HomeFragment()
-            1 -> AppListFragment()
-            else -> HomeFragment()
+
+        private val fragments = mapOf(
+            0 to HomeFragment(),
+            1 to AppListFragment()
+        )
+
+        override fun getItemCount() = fragments.size
+
+        override fun createFragment(position: Int): Fragment {
+            return fragments[position] ?: HomeFragment()
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun containsItem(itemId: Long): Boolean {
+            return itemId in fragments.keys.map { it.toLong() }
         }
     }
 }

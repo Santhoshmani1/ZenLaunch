@@ -1,63 +1,78 @@
 package com.zenlauncher
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.graphics.Color
-import android.view.ViewGroup
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.zenlauncher.helpers.AppUtils.launchApp
 import com.zenlauncher.helpers.AppUtils.showOptionsDialog
 import com.zenlauncher.helpers.Constants
-import com.zenlauncher.helpers.setPaddingAll
 
-class AppAdapter(
-    private val context: Context,
-    private var apps: List<AppInfo>,
-    private val selectedApps: MutableList<AppInfo> = mutableListOf(),
-    private val onUpdated: () -> Unit = {}
-) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
+@Composable
+fun AppList(
+    apps: List<AppInfo>,
+    selectedApps: List<AppInfo>,
+    highlightLetter: Char?,
+    fadeOthers: Boolean,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    onUpdated: () -> Unit
+) {
+    val context = LocalContext.current
+    LazyColumn(state = listState) {
+        itemsIndexed(apps, key = { _, app -> app.packageName }) { _, app ->
+            val matches = app.label.firstOrNull()?.uppercaseChar() == highlightLetter
+            val alpha = if (fadeOthers) {
+                if (matches) 1f else 0.3f
+            } else 1f
 
-    inner class AppViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        val textView = TextView(context).apply {
-            textSize = Constants.Sizes.APP_LABEL_TEXT_SIZE
-            setTextColor(Color.WHITE)
-            setPaddingAll(Constants.Sizes.APP_LABEL_PADDING_V)
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+            AppListItem(
+                app = app,
+                onClick = { launchApp(context, app) },
+                onLongClick = {
+                    showOptionsDialog(context, app, selectedApps.toMutableList()) { _ ->
+                        onUpdated()
+                    }
+                },
+                alpha = alpha
             )
         }
-        return AppViewHolder(textView)
     }
+}
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun updateList(newList: List<AppInfo>) {
-        apps = newList
-        notifyDataSetChanged()
-    }
+@Composable
+fun AppListItem(
+    app: AppInfo,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    alpha: Float
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val indication: Indication = LocalIndication.current
 
-    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val app = apps[position]
-        holder.textView.text = app.label
-        holder.textView.contentDescription = app.label
-        holder.itemView.alpha = 1f
-
-        holder.textView.setOnClickListener { launchApp(context, app) }
-
-        holder.textView.setOnLongClickListener {
-            showOptionsDialog(context, app, selectedApps) { updatedApp ->
-                apps = apps.toMutableList().apply {
-                    this[position] = updatedApp
-                }
-                notifyItemChanged(position)
-                onUpdated()
-            }
-            true
-        }
-    }
-
-    override fun getItemCount(): Int = apps.size
+    Text(
+        text = app.label,
+        color = Color.White.copy(alpha = alpha),
+        fontSize = Constants.Sizes.APP_LABEL_TEXT_SIZE.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Constants.Sizes.APP_LABEL_PADDING_V.dp, horizontal = 16.dp)
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = indication,
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+    )
 }

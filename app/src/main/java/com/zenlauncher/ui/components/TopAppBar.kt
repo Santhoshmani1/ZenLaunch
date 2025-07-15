@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZenTopAppBar(title: String, onBackPressed: () -> Unit){
+fun ZenTopAppBar(title: String, onBackPressed: () -> Unit) {
     TopAppBar(
         title = {
             Text(

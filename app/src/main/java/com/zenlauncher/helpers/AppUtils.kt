@@ -5,11 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.provider.Settings
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import android.view.inputmethod.InputMethodManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.zenlauncher.AppInfo
 
@@ -19,14 +19,16 @@ object AppUtils {
     private const val ENTRY_SEPARATOR = "::"
 
     fun addToFavorites(context: Context, app: AppInfo) {
-        val prefs = context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
         val current = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: ""
         val entry = "${app.label}$ENTRY_SEPARATOR${app.packageName}$ENTRY_SEPARATOR${app.className}"
 
         val favorites = current.split(DELIMITER).filter { it.isNotBlank() }.toMutableSet()
 
         if (!favorites.add(entry)) {
-            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT)
+                .show()
         } else {
             prefs.edit {
                 putString(Constants.Prefs.FAVORITES_KEY, favorites.sorted().joinToString(DELIMITER))
@@ -48,15 +50,18 @@ object AppUtils {
             data = "package:${app.packageName}".toUri()
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-
         val pm = context.packageManager
         val appInfo = pm.getInstalledApplications(0).find { it.packageName == app.packageName }
         val isSystemApp = appInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
 
-        if (!isSystemApp && intent.resolveActivity(context.packageManager) != null) {
+        if (!isSystemApp && intent.resolveActivity(pm) != null) {
             context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
         } else {
-            Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                context,
+                "System app ${app.label} cannot be uninstalled",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -95,8 +100,9 @@ object AppUtils {
             saveButton.setOnClickListener {
                 val newLabel = editText.text.toString().trim()
                 if (newLabel.isNotBlank()) {
-                    val updatedApp = AppInfo(newLabel, app.packageName, app.className)
+                    val updatedApp = app.copy(label = newLabel)
 
+                    // Update in selectedApps if present
                     val favIndex = selectedApps.indexOfFirst {
                         it.packageName == app.packageName && it.className == app.className
                     }
@@ -104,6 +110,7 @@ object AppUtils {
                         selectedApps[favIndex] = updatedApp
                     }
 
+                    // Update in stored favorites
                     val favorites = loadFavorites(context).toMutableList()
                     val storedIndex = favorites.indexOfFirst {
                         it.packageName == app.packageName && it.className == app.className
@@ -121,7 +128,6 @@ object AppUtils {
                 }
             }
 
-            // Auto-focus and keyboard
             editText.requestFocus()
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
@@ -129,7 +135,6 @@ object AppUtils {
 
         dialog.show()
     }
-
 
     fun showOptionsDialog(
         context: Context,
@@ -151,7 +156,8 @@ object AppUtils {
     }
 
     fun saveFavorites(context: Context, favorites: List<AppInfo>) {
-        val prefs = context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
         val serialized = favorites.joinToString(DELIMITER) {
             "${it.label}$ENTRY_SEPARATOR${it.packageName}$ENTRY_SEPARATOR${it.className}"
         }
@@ -159,7 +165,8 @@ object AppUtils {
     }
 
     fun loadFavorites(context: Context): List<AppInfo> {
-        val prefs = context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
+        val prefs =
+            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
         val serialized = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: return emptyList()
         if (serialized.isBlank()) return emptyList()
         return serialized.split(DELIMITER).mapNotNull { entry ->
@@ -181,7 +188,8 @@ object AppUtils {
                 selectedApps.remove(app)
                 saveFavorites(context, selectedApps)
                 onUpdated()
-                Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT)
+                    .show()
             }
             .setNegativeButton("Cancel", null)
             .show()

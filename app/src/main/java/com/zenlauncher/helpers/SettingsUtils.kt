@@ -15,7 +15,8 @@ object SettingsUtils {
         if (intent.resolveActivity(context.packageManager) != null) {
             context.startActivity(intent)
         } else {
-            Toast.makeText(context, "Unable to open default launcher settings.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Unable to open default launcher settings.", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -24,9 +25,11 @@ object SettingsUtils {
         val compName = ComponentName(context, DeviceAdmin::class.java)
         if (dpm.isAdminActive(compName)) {
             dpm.removeActiveAdmin(compName)
-            Toast.makeText(context, Constants.Toasts.DEVICE_ADMIN_DISABLED, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, Constants.Toasts.DEVICE_ADMIN_DISABLED, Toast.LENGTH_SHORT)
+                .show()
         } else {
-            Toast.makeText(context, Constants.Toasts.DEVICE_ADMIN_INACTIVE, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, Constants.Toasts.DEVICE_ADMIN_INACTIVE, Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -47,5 +50,4 @@ object SettingsUtils {
             Toast.makeText(context, "No browser found to open link.", Toast.LENGTH_SHORT).show()
         }
     }
-
 }

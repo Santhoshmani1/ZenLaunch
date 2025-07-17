@@ -1,7 +1,5 @@
 package com.zenlauncher.ui.screens
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.compose.foundation.background
@@ -52,6 +50,8 @@ import androidx.compose.ui.unit.sp
 import com.zenlauncher.AppInfo
 import com.zenlauncher.AppList
 import com.zenlauncher.helpers.AppUtils
+import com.zenlauncher.receiver.PackageRemovedReceiver
+import com.zenlauncher.reciever.PackageAddedReceiver
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,21 +86,32 @@ fun AppListScreen() {
     }
 
     DisposableEffect(Unit) {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_PACKAGE_REMOVED) {
-                    val pkg = intent.data?.schemeSpecificPart ?: return
-                    apps = apps.filter { it.packageName != pkg }
-                    originalApps = originalApps.filter { it.packageName != pkg }
-                    selectedApps.removeAll { it.packageName == pkg }
-                    AppUtils.saveFavorites(context!!, selectedApps)
-                }
-            }
+        val packageAddedReceiver = PackageAddedReceiver { newApp ->
+            apps = (apps + newApp).sortedBy { it.label.lowercase() }
+            originalApps = (originalApps + newApp).sortedBy { it.label.lowercase() }
         }
-        val filter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply { addDataScheme("package") }
-        context.registerReceiver(receiver, filter)
-        onDispose { context.unregisterReceiver(receiver) }
+        val addedFilter = IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }
+        context.registerReceiver(packageAddedReceiver, addedFilter)
+
+        val packageRemovedReceiver = PackageRemovedReceiver(
+            onAppRemoved = { pkg ->
+                apps = apps.filter { it.packageName != pkg }
+                originalApps = originalApps.filter { it.packageName != pkg }
+                selectedApps.removeAll { it.packageName == pkg }
+            },
+            onFavoritesUpdated = {
+                AppUtils.saveFavorites(context, selectedApps)
+            }
+        )
+        val removedFilter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply { addDataScheme("package") }
+        context.registerReceiver(packageRemovedReceiver, removedFilter)
+
+        onDispose {
+            context.unregisterReceiver(packageAddedReceiver)
+            context.unregisterReceiver(packageRemovedReceiver)
+        }
     }
+
 
     val letters = ('A'..'Z').toList()
     val letterIndexMap = remember(apps) {

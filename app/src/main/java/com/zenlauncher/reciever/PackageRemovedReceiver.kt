@@ -1,4 +1,4 @@
-package com.zenlauncher.receiver
+package com.zenlauncher.reciever
 
 import android.content.BroadcastReceiver
 import android.content.Context

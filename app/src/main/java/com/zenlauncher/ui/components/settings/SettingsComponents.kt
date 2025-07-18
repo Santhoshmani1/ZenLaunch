@@ -1,4 +1,4 @@
-package com.zenlauncher.ui.components
+package com.zenlauncher.ui.components.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

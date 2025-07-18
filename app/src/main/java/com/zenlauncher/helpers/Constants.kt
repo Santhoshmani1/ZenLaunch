@@ -20,7 +20,7 @@ object Constants {
 
     object Sizes {
         const val CLOCK_TEXT_SIZE = 40
-        const val DATE_TEXT_SIZE = 18
+        const val DATE_TEXT_SIZE = 16
         const val FAV_TITLE_TEXT_SIZE = 16
         const val APP_LABEL_TEXT_SIZE = 20
         const val APP_LABEL_PADDING_V = 12

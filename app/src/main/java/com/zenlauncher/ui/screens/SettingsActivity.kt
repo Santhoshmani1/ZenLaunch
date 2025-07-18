@@ -19,9 +19,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.helpers.SettingsUtils
-import com.zenlauncher.ui.components.SettingsHeader
-import com.zenlauncher.ui.components.SettingsOption
-import com.zenlauncher.ui.components.ZenTopAppBar
+import com.zenlauncher.ui.components.settings.SettingsHeader
+import com.zenlauncher.ui.components.settings.SettingsOption
+import com.zenlauncher.ui.components.settings.ZenTopAppBar
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

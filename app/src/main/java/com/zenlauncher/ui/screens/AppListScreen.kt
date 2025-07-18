@@ -50,8 +50,9 @@ import androidx.compose.ui.unit.sp
 import com.zenlauncher.AppInfo
 import com.zenlauncher.AppList
 import com.zenlauncher.helpers.AppUtils
-import com.zenlauncher.receiver.PackageRemovedReceiver
+import com.zenlauncher.helpers.Constants
 import com.zenlauncher.reciever.PackageAddedReceiver
+import com.zenlauncher.reciever.PackageRemovedReceiver
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -257,12 +258,12 @@ fun UnderlineSearchBar(
             Text(
                 text = placeholder,
                 color = Color.Gray,
-                fontSize = 14.sp
+                fontSize = Constants.Sizes.APP_LABEL_TEXT_SIZE.sp
             )
         },
         textStyle = LocalTextStyle.current.copy(
             color = Color.White,
-            fontSize = 14.sp
+            fontSize = Constants.Sizes.APP_LABEL_TEXT_SIZE.sp
         ),
         colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.White,

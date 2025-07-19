@@ -12,6 +12,10 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.zenlauncher.AppInfo
+import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_ACTIVITY
+import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_PACKAGE_NAME
+import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
+import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME
 
 object AppUtils {
 
@@ -65,9 +69,21 @@ object AppUtils {
         }
     }
 
+
     fun launchApp(context: Context, app: AppInfo) {
-        val intent = Intent().apply {
-            setClassName(app.packageName, app.className)
+        val (packageName, className) = when (app.packageName) {
+            DIGITAL_WELLBEING_PACKAGE_NAME -> {
+                DIGITAL_WELLBEING_PACKAGE_NAME to DIGITAL_WELLBEING_ACTIVITY
+            }
+            DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME -> {
+                DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME to DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
+            }
+            else -> app.packageName to app.className
+        }
+
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            setClassName(packageName, className)
+            addCategory(Intent.CATEGORY_LAUNCHER)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)

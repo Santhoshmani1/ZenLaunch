@@ -7,6 +7,11 @@ object Constants {
 
     const val GITHUB_REPO = "https://github.com/santhoshmani1/Zenlaunch"
 
+    const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
+    const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
+    const val DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME = "com.samsung.android.forest"
+    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY = "com.samsung.android.forest.launcher.LauncherActivity"
+
     object Intents {
         const val SHARE_VIA = "Share via"
         const val DEVICE_ADMIN_INFO = "Enable Zen Launcher double-tap to lock"

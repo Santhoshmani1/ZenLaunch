@@ -1,4 +1,4 @@
-package com.zenlauncher
+package com.zenlauncher.data
 
 /**
  * Represents basic information about an installed application.

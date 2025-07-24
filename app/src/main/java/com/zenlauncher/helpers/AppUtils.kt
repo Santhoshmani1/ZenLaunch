@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.zenlauncher.AppInfo
+import com.zenlauncher.data.AppInfo
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_ACTIVITY
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_PACKAGE_NAME
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_SAMSUNG_ACTIVITY

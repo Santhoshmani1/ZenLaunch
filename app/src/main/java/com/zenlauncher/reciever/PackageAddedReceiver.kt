@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.zenlauncher.AppInfo
+import com.zenlauncher.data.AppInfo
 
 class PackageAddedReceiver(
     private val onAppAdded: (AppInfo) -> Unit

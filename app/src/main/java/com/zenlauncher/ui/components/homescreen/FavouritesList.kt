@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.zenlauncher.data.AppInfo
+import com.zenlauncher.data.models.AppInfo
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
 

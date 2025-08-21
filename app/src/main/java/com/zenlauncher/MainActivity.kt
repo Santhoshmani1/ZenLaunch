@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerSnapDistance
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -88,17 +90,26 @@ fun MainPager() {
     }
 
 
+    val fling = PagerDefaults.flingBehavior(
+        state = pagerState,
+        pagerSnapDistance = PagerSnapDistance.atMost(1),
+        snapAnimationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy,
+        ),
+    )
+
+    val pages = listOf<@Composable () -> Unit>(
+        { HomeScreen() },
+        { AppListScreen() }
+    )
+
     HorizontalPager(
         state = pagerState,
-        flingBehavior = PagerDefaults.flingBehavior(
-            state = pagerState,
-            snapAnimationSpec = tween(durationMillis = 80)
-        ),
+        flingBehavior = fling,
         modifier = Modifier.fillMaxSize()
     ) { page ->
-        when (page) {
-            0 -> HomeScreen()
-            1 -> AppListScreen()
-        }
+        pages[page]()
     }
+
 }

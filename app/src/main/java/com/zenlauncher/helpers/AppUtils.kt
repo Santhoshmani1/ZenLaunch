@@ -8,36 +8,36 @@ import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.zenlauncher.data.db.LauncherDatabase
+import com.zenlauncher.data.db.entities.FavoriteEntity
+import com.zenlauncher.data.db.entities.RenamedAppEntity
 import com.zenlauncher.data.models.AppInfo
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_ACTIVITY
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_PACKAGE_NAME
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object AppUtils {
 
-    private const val DELIMITER = "|"
-    private const val ENTRY_SEPARATOR = "::"
-
     fun addToFavorites(context: Context, app: AppInfo) {
-        val prefs =
-            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
-        val current = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: ""
-        val entry = "${app.label}$ENTRY_SEPARATOR${app.packageName}$ENTRY_SEPARATOR${app.className}"
-
-        val favorites = current.split(DELIMITER).filter { it.isNotBlank() }.toMutableSet()
-
-        if (!favorites.add(entry)) {
-            Toast.makeText(context, "${app.label} is already in favorites", Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            prefs.edit {
-                putString(Constants.Prefs.FAVORITES_KEY, favorites.sorted().joinToString(DELIMITER))
+        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+        CoroutineScope(Dispatchers.IO).launch {
+            dao.insertFavorite(
+                FavoriteEntity(
+                    label = app.label,
+                    packageName = app.packageName,
+                    className = app.className
+                )
+            )
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
             }
-            Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -61,23 +61,14 @@ object AppUtils {
         if (!isSystemApp && intent.resolveActivity(pm) != null) {
             context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
         } else {
-            Toast.makeText(
-                context,
-                "System app ${app.label} cannot be uninstalled",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
         }
     }
 
-
     fun launchApp(context: Context, app: AppInfo) {
         val (packageName, className) = when (app.packageName) {
-            DIGITAL_WELLBEING_PACKAGE_NAME -> {
-                DIGITAL_WELLBEING_PACKAGE_NAME to DIGITAL_WELLBEING_ACTIVITY
-            }
-            DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME -> {
-                DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME to DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
-            }
+            DIGITAL_WELLBEING_PACKAGE_NAME -> DIGITAL_WELLBEING_PACKAGE_NAME to DIGITAL_WELLBEING_ACTIVITY
+            DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME -> DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME to DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
             else -> app.packageName to app.className
         }
 
@@ -118,24 +109,24 @@ object AppUtils {
                 if (newLabel.isNotBlank()) {
                     val updatedApp = app.copy(label = newLabel)
 
-                    // Update in selectedApps if present
-                    val favIndex = selectedApps.indexOfFirst {
+                    // Update in selectedApps list
+                    val index = selectedApps.indexOfFirst {
                         it.packageName == app.packageName && it.className == app.className
                     }
-                    if (favIndex != -1) {
-                        selectedApps[favIndex] = updatedApp
+                    if (index != -1) selectedApps[index] = updatedApp
+
+                    // Persist rename in DB
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val db = LauncherDatabase.getDatabase(context)
+                        db.renamedAppDao().insertOrUpdateRename(
+                            RenamedAppEntity(app.packageName, app.className, newLabel)
+                        )
+
+                        // If in favorites, also update there
+                        db.favoriteDao().renameFavorite(app.packageName, app.className, newLabel)
                     }
 
-                    // Update in stored favorites
-                    val favorites = loadFavorites(context).toMutableList()
-                    val storedIndex = favorites.indexOfFirst {
-                        it.packageName == app.packageName && it.className == app.className
-                    }
-                    if (storedIndex != -1) {
-                        favorites[storedIndex] = updatedApp
-                        saveFavorites(context, favorites)
-                    }
-
+                    // Update UI
                     onUpdated(updatedApp)
                     Toast.makeText(context, "Renamed to $newLabel", Toast.LENGTH_SHORT).show()
                     dialog.dismiss()
@@ -150,6 +141,32 @@ object AppUtils {
         }
 
         dialog.show()
+    }
+
+    suspend fun loadRenames(context: Context): Map<String, String> {
+        val dao = LauncherDatabase.getDatabase(context).renamedAppDao()
+        return dao.getRenamedApps().associateBy(
+            { it.packageName + it.className },
+            { it.customLabel }
+        )
+    }
+
+    suspend fun saveRename(context: Context, app: AppInfo) {
+        val db = LauncherDatabase.getDatabase(context)
+        val dao = db.renamedAppDao()
+        dao.insertOrUpdateRename(
+            RenamedAppEntity(
+                packageName = app.packageName,
+                className = app.className,
+                customLabel = app.label
+            )
+        )
+    }
+
+    suspend fun getRenamedLabel(context: Context, packageName: String, className: String): String? {
+        val db = LauncherDatabase.getDatabase(context)
+        val dao = db.renamedAppDao()
+        return dao.getRename(packageName, className)?.customLabel
     }
 
     fun showOptionsDialog(
@@ -171,23 +188,21 @@ object AppUtils {
             .show()
     }
 
-    fun saveFavorites(context: Context, favorites: List<AppInfo>) {
-        val prefs =
-            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
-        val serialized = favorites.joinToString(DELIMITER) {
-            "${it.label}$ENTRY_SEPARATOR${it.packageName}$ENTRY_SEPARATOR${it.className}"
-        }
-        prefs.edit { putString(Constants.Prefs.FAVORITES_KEY, serialized) }
+    suspend fun loadFavorites(context: Context): List<AppInfo> {
+        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+        return dao.getFavorites().map { AppInfo(it.label, it.packageName, it.className) }
     }
 
-    fun loadFavorites(context: Context): List<AppInfo> {
-        val prefs =
-            context.getSharedPreferences(Constants.Prefs.LAUNCHER_PREFS, Context.MODE_PRIVATE)
-        val serialized = prefs.getString(Constants.Prefs.FAVORITES_KEY, "") ?: return emptyList()
-        if (serialized.isBlank()) return emptyList()
-        return serialized.split(DELIMITER).mapNotNull { entry ->
-            entry.split(ENTRY_SEPARATOR).takeIf { it.size == 3 }?.let { (label, pkg, className) ->
-                AppInfo(label, pkg, className)
+    fun saveFavorites(context: Context, favorites: List<AppInfo>) {
+        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+        CoroutineScope(Dispatchers.IO).launch {
+            dao.getFavorites().forEach { dao.deleteFavorite(it) } // clear
+            favorites.forEach { app ->
+                dao.insertFavorite(
+                     FavoriteEntity(label=app.label,
+                                    packageName = app.packageName,
+                                    className = app.className)
+                )
             }
         }
     }
@@ -201,11 +216,15 @@ object AppUtils {
         AlertDialog.Builder(context)
             .setMessage("Remove ${app.label} from favorites?")
             .setPositiveButton("Remove") { _, _ ->
-                selectedApps.remove(app)
-                saveFavorites(context, selectedApps)
-                onUpdated()
-                Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT)
-                    .show()
+                val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+                CoroutineScope(Dispatchers.IO).launch {
+                    dao.deleteByApp(app.packageName, app.className)
+                    selectedApps.remove(app)
+                    withContext(Dispatchers.Main) {
+                        onUpdated()
+                        Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()

@@ -1,4 +1,4 @@
-package com.zenlauncher
+package com.zenlauncher.ui.components
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.LocalIndication
@@ -21,14 +21,21 @@ import com.zenlauncher.helpers.AppUtils.launchApp
 import com.zenlauncher.helpers.AppUtils.showOptionsDialog
 import com.zenlauncher.helpers.Constants
 
+/**
+ * Note:
+ * - selectedApps is MutableList<AppInfo> (pass your mutableStateListOf from the screen)
+ * - onFavoritesChanged() -> persist favorites (save to DB)
+ * - onAppUpdated(updatedApp) -> update the parent apps/originalApps lists so UI reflects rename immediately
+ */
 @Composable
 fun AppList(
     apps: List<AppInfo>,
-    selectedApps: List<AppInfo>,
+    selectedApps: MutableList<AppInfo>,
     highlightLetter: Char?,
     fadeOthers: Boolean,
     listState: androidx.compose.foundation.lazy.LazyListState,
-    onUpdated: () -> Unit
+    onFavoritesChanged: () -> Unit,
+    onAppUpdated: (AppInfo) -> Unit
 ) {
     val context = LocalContext.current
     LazyColumn(state = listState) {
@@ -42,8 +49,9 @@ fun AppList(
                 app = app,
                 onClick = { launchApp(context, app) },
                 onLongClick = {
-                    showOptionsDialog(context, app, selectedApps.toMutableList()) { _ ->
-                        onUpdated()
+                    showOptionsDialog(context, app, selectedApps) { updatedApp ->
+                        onAppUpdated(updatedApp)
+                        onFavoritesChanged()
                     }
                 },
                 alpha = alpha

@@ -48,11 +48,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenlauncher.data.models.AppInfo
-import com.zenlauncher.AppList
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.reciever.PackageAddedReceiver
 import com.zenlauncher.reciever.PackageRemovedReceiver
+import com.zenlauncher.ui.components.AppList
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,11 +65,12 @@ fun AppListScreen() {
     var searchQuery by remember { mutableStateOf("") }
     var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var originalApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    val selectedApps =
-        remember { mutableStateListOf<AppInfo>().apply { addAll(AppUtils.loadFavorites(context)) } }
+    val selectedApps = remember { mutableStateListOf<AppInfo>() }
+
     var overlayLetter by remember { mutableStateOf<String?>(null) }
     val isIndexDragging = remember { mutableStateOf(false) }
 
+    // Load apps, favorites and renames
     LaunchedEffect(Unit) {
         val pm = context.packageManager
         val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
@@ -82,16 +83,30 @@ fun AppListScreen() {
                 )
             }
             .sortedBy { it.label.lowercase() }
-        originalApps = launchableApps
-        apps = launchableApps
+
+        // Apply rename overrides
+        val renames = AppUtils.loadRenames(context)
+        val renamedApps = launchableApps.map { app ->
+            val key = "${app.packageName}/${app.className}"
+            app.copy(label = renames[key] ?: app.label)
+        }
+
+        originalApps = renamedApps
+        apps = renamedApps
+
+        val favorites = AppUtils.loadFavorites(context)
+        selectedApps.clear()
+        selectedApps.addAll(favorites)
     }
 
+    // App install/uninstall receivers
     DisposableEffect(Unit) {
         val packageAddedReceiver = PackageAddedReceiver { newApp ->
             apps = (apps + newApp).sortedBy { it.label.lowercase() }
             originalApps = (originalApps + newApp).sortedBy { it.label.lowercase() }
         }
-        val addedFilter = IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }
+        val addedFilter =
+            IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }
         context.registerReceiver(packageAddedReceiver, addedFilter)
 
         val packageRemovedReceiver = PackageRemovedReceiver(
@@ -104,7 +119,8 @@ fun AppListScreen() {
                 AppUtils.saveFavorites(context, selectedApps)
             }
         )
-        val removedFilter = IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply { addDataScheme("package") }
+        val removedFilter =
+            IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply { addDataScheme("package") }
         context.registerReceiver(packageRemovedReceiver, removedFilter)
 
         onDispose {
@@ -113,7 +129,7 @@ fun AppListScreen() {
         }
     }
 
-
+    // Build letter index map
     val letters = ('A'..'Z').toList()
     val letterIndexMap = remember(apps) {
         buildMap {
@@ -128,9 +144,11 @@ fun AppListScreen() {
     var indexBarTop by remember { mutableFloatStateOf(0f) }
     var indexBarHeight by remember { mutableFloatStateOf(0f) }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
             UnderlineSearchBar(
@@ -144,15 +162,61 @@ fun AppListScreen() {
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
+                // App list with favorites + rename callback
                 AppList(
                     apps = apps,
                     selectedApps = selectedApps,
                     highlightLetter = overlayLetter?.firstOrNull(),
                     fadeOthers = isIndexDragging.value,
                     listState = listState,
-                    onUpdated = { AppUtils.saveFavorites(context, selectedApps) }
+                    onFavoritesChanged = {
+                        coroutineScope.launch { AppUtils.saveFavorites(context, selectedApps) }
+                    },
+                    onAppUpdated = { updatedApp ->
+                        // persist rename
+                        coroutineScope.launch { AppUtils.saveRename(context, updatedApp) }
+
+                        // Update lists so UI reflects instantly
+                        apps = apps.map {
+                            if (it.packageName == updatedApp.packageName &&
+                                it.className == updatedApp.className
+                            ) updatedApp else it
+                        }
+                        originalApps = originalApps.map {
+                            if (it.packageName == updatedApp.packageName &&
+                                it.className == updatedApp.className
+                            ) updatedApp else it
+                        }
+
+                        val idx = selectedApps.indexOfFirst {
+                            it.packageName == updatedApp.packageName &&
+                                    it.className == updatedApp.className
+                        }
+                        if (idx != -1) selectedApps[idx] = updatedApp
+                    }
                 )
 
+                // Settings button
+                IconButton(
+                    onClick = {
+                        context.startActivity(
+                            Intent(
+                                context,
+                                SettingsActivity::class.java
+                            )
+                        )
+                    },
+                    modifier = Modifier.size(36.dp).align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = Color.White
+                    )
+                }
+
+                // Alphabet index bar
+                Spacer(modifier = Modifier.height(8.dp))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(
@@ -197,33 +261,7 @@ fun AppListScreen() {
                             )
                         }
                 ) {
-                    IconButton(
-                        onClick = {
-                            context.startActivity(
-                                Intent(
-                                    context,
-                                    SettingsActivity::class.java
-                                )
-                            )
-                        },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = Color.White
-                        )
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    letters.forEach { letter ->
-                        Text(
-                            letter.toString(),
-                            color = Color.Transparent.copy(alpha = 0.85f),
-                            fontSize = 8.sp,
-                        )
-                    }
                 }
 
                 overlayLetter?.let { letter ->

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -63,4 +64,8 @@ dependencies {
     implementation ("androidx.compose.runtime:runtime-livedata")
     implementation ("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose")
+
+    val room_version = "2.7.2"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
 }

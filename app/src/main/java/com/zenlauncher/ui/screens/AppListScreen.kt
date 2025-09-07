@@ -261,9 +261,33 @@ fun AppListScreen() {
                             )
                         }
                 ) {
+                    IconButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(context, SettingsActivity::class.java)
+                            )
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Settings",
+                            tint = Color.White
+                        )
+                    }
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    letters.forEach { letter ->
+                        Text(
+                            letter.toString(),
+                            color = Color.Transparent.copy(alpha = 0.85f),
+                            fontSize = 8.sp,
+                        )
+                    }
                 }
 
+                // Overlay letter preview
                 overlayLetter?.let { letter ->
                     Box(
                         modifier = Modifier

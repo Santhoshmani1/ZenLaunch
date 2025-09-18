@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="com.zenlauncher.MainActivity"
             android:configChanges="orientation|uiMode"
             android:excludeFromRecents="true"
             android:exported="true"
@@ -34,12 +34,11 @@
         </activity>
 
         <activity
-            android:name=".ui.screens.SettingsActivity"
-            android:exported="true"
+            android:name="com.zenlauncher.ui.screens.SettingsActivity"
             android:theme="@style/Theme.SimpleLauncher" />
 
         <receiver
-            android:name=".listener.DeviceAdmin"
+            android:name="com.zenlauncher.listener.DeviceAdmin"
             android:exported="false"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <meta-data

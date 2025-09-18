@@ -28,4 +28,7 @@ interface FavoriteDao {
     @Query("UPDATE favorites SET label = :newLabel WHERE packageName = :pkg AND className = :cls")
     suspend fun renameFavorite(pkg: String, cls: String, newLabel: String)
 
+    @Query("DELETE FROM favorites")
+    suspend fun clearAll()
+
 }

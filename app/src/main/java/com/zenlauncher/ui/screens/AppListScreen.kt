@@ -1,7 +1,6 @@
 package com.zenlauncher.ui.screens
 
 import android.content.Intent
-import android.content.IntentFilter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,7 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -50,9 +48,8 @@ import androidx.compose.ui.unit.sp
 import com.zenlauncher.data.models.AppInfo
 import com.zenlauncher.helpers.AppUtils
 import com.zenlauncher.helpers.Constants
-import com.zenlauncher.reciever.PackageAddedReceiver
-import com.zenlauncher.reciever.PackageRemovedReceiver
 import com.zenlauncher.ui.components.AppList
+import com.zenlauncher.ui.handlers.PackageChangeHandler
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,14 +60,13 @@ fun AppListScreen() {
     val listState = rememberLazyListState()
 
     var searchQuery by remember { mutableStateOf("") }
-    var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var originalApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    val allApps = remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    val apps = remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     val selectedApps = remember { mutableStateListOf<AppInfo>() }
 
     var overlayLetter by remember { mutableStateOf<String?>(null) }
     val isIndexDragging = remember { mutableStateOf(false) }
 
-    // Load apps, favorites and renames
     LaunchedEffect(Unit) {
         val pm = context.packageManager
         val intent = Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
@@ -84,56 +80,35 @@ fun AppListScreen() {
             }
             .sortedBy { it.label.lowercase() }
 
-        // Apply rename overrides
         val renames = AppUtils.loadRenames(context)
         val renamedApps = launchableApps.map { app ->
             val key = "${app.packageName}/${app.className}"
             app.copy(label = renames[key] ?: app.label)
         }
 
-        originalApps = renamedApps
-        apps = renamedApps
+        allApps.value = renamedApps
+        apps.value = renamedApps
 
         val favorites = AppUtils.loadFavorites(context)
         selectedApps.clear()
-        selectedApps.addAll(favorites)
+        selectedApps.addAll(favorites.map { fav ->
+            val key = "${fav.packageName}/${fav.className}"
+            fav.copy(label = renames[key] ?: fav.label)
+        })
     }
 
-    // App install/uninstall receivers
-    DisposableEffect(Unit) {
-        val packageAddedReceiver = PackageAddedReceiver { newApp ->
-            apps = (apps + newApp).sortedBy { it.label.lowercase() }
-            originalApps = (originalApps + newApp).sortedBy { it.label.lowercase() }
-        }
-        val addedFilter =
-            IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }
-        context.registerReceiver(packageAddedReceiver, addedFilter)
+    PackageChangeHandler(
+        context = context,
+        searchQuery = searchQuery,
+        allApps = allApps,
+        apps = apps,
+        selectedApps = selectedApps
+    )
 
-        val packageRemovedReceiver = PackageRemovedReceiver(
-            onAppRemoved = { pkg ->
-                apps = apps.filter { it.packageName != pkg }
-                originalApps = originalApps.filter { it.packageName != pkg }
-                selectedApps.removeAll { it.packageName == pkg }
-            },
-            onFavoritesUpdated = {
-                AppUtils.saveFavorites(context, selectedApps)
-            }
-        )
-        val removedFilter =
-            IntentFilter(Intent.ACTION_PACKAGE_REMOVED).apply { addDataScheme("package") }
-        context.registerReceiver(packageRemovedReceiver, removedFilter)
-
-        onDispose {
-            context.unregisterReceiver(packageAddedReceiver)
-            context.unregisterReceiver(packageRemovedReceiver)
-        }
-    }
-
-    // Build letter index map
     val letters = ('A'..'Z').toList()
-    val letterIndexMap = remember(apps) {
+    val letterIndexMap = remember(apps.value) {
         buildMap {
-            apps.forEachIndexed { index, app ->
+            apps.value.forEachIndexed { index, app ->
                 app.label.firstOrNull()?.uppercaseChar()?.let { c ->
                     if (c in 'A'..'Z') putIfAbsent(c, index)
                 }
@@ -144,27 +119,23 @@ fun AppListScreen() {
     var indexBarTop by remember { mutableFloatStateOf(0f) }
     var indexBarHeight by remember { mutableFloatStateOf(0f) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().background(Color.Black)) {
+        Column(Modifier.fillMaxSize()) {
 
             UnderlineSearchBar(
                 query = searchQuery,
                 onQueryChange = { query ->
                     searchQuery = query
-                    apps = if (query.isBlank()) originalApps else originalApps.filter { app ->
-                        app.label.contains(query, ignoreCase = true)
+                    val normalized = query.trim().replace("\\s+".toRegex(), " ")
+                    apps.value = if (normalized.isBlank()) allApps.value else allApps.value.filter {
+                        it.label.contains(normalized, ignoreCase = true)
                     }
                 }
             )
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                // App list with favorites + rename callback
+            Box(Modifier.fillMaxSize()) {
                 AppList(
-                    apps = apps,
+                    apps = apps.value,
                     selectedApps = selectedApps,
                     highlightLetter = overlayLetter?.firstOrNull(),
                     fadeOthers = isIndexDragging.value,
@@ -173,62 +144,34 @@ fun AppListScreen() {
                         coroutineScope.launch { AppUtils.saveFavorites(context, selectedApps) }
                     },
                     onAppUpdated = { updatedApp ->
-                        // persist rename
-                        coroutineScope.launch { AppUtils.saveRename(context, updatedApp) }
-
-                        // Update lists so UI reflects instantly
-                        apps = apps.map {
-                            if (it.packageName == updatedApp.packageName &&
-                                it.className == updatedApp.className
-                            ) updatedApp else it
+                        coroutineScope.launch {
+                            AppUtils.saveRename(context, updatedApp)
+                            val renames = AppUtils.loadRenames(context)
+                            allApps.value = allApps.value.map { app ->
+                                val key = "${app.packageName}/${app.className}"
+                                app.copy(label = renames[key] ?: app.label)
+                            }
+                            val normalized = searchQuery.trim().replace("\\s+".toRegex(), " ")
+                            apps.value = if (normalized.isBlank()) allApps.value else allApps.value.filter {
+                                it.label.contains(normalized, ignoreCase = true)
+                            }
+                            selectedApps.replaceAll { fav ->
+                                val key = "${fav.packageName}/${fav.className}"
+                                fav.copy(label = renames[key] ?: fav.label)
+                            }
                         }
-                        originalApps = originalApps.map {
-                            if (it.packageName == updatedApp.packageName &&
-                                it.className == updatedApp.className
-                            ) updatedApp else it
-                        }
-
-                        val idx = selectedApps.indexOfFirst {
-                            it.packageName == updatedApp.packageName &&
-                                    it.className == updatedApp.className
-                        }
-                        if (idx != -1) selectedApps[idx] = updatedApp
                     }
                 )
 
-                // Settings button
-                IconButton(
-                    onClick = {
-                        context.startActivity(
-                            Intent(
-                                context,
-                                SettingsActivity::class.java
-                            )
-                        )
-                    },
-                    modifier = Modifier.size(36.dp).align(Alignment.TopEnd)
-                ) {
-                    Icon(
-                        Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = Color.White
-                    )
-                }
-
-                // Alphabet index bar
-                Spacer(modifier = Modifier.height(8.dp))
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(
-                        0.1.dp,
-                        Alignment.CenterVertically
-                    ),
+                    verticalArrangement = Arrangement.spacedBy(0.1.dp, Alignment.CenterVertically),
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .width(40.dp)
                         .padding(vertical = 8.dp)
-                        .onGloballyPositioned { coordinates ->
-                            val bounds = coordinates.boundsInRoot()
+                        .onGloballyPositioned {
+                            val bounds = it.boundsInRoot()
                             indexBarTop = bounds.top
                             indexBarHeight = bounds.height
                         }
@@ -236,18 +179,15 @@ fun AppListScreen() {
                             detectVerticalDragGestures(
                                 onDragStart = { isIndexDragging.value = true },
                                 onVerticalDrag = { change, _ ->
-                                    val absoluteY = change.position.y + indexBarTop
                                     val relativeY =
-                                        (absoluteY - indexBarTop).coerceIn(0f, indexBarHeight)
+                                        (change.position.y).coerceIn(0f, indexBarHeight)
                                     val letterHeight = indexBarHeight / letters.size
                                     val index = (relativeY / letterHeight).toInt()
                                         .coerceIn(0, letters.size - 1)
                                     val letter = letters[index]
                                     overlayLetter = letter.toString()
-                                    letterIndexMap[letter]?.let { targetIndex ->
-                                        coroutineScope.launch {
-                                            listState.scrollToItem(targetIndex)
-                                        }
+                                    letterIndexMap[letter]?.let { idx ->
+                                        coroutineScope.launch { listState.scrollToItem(idx) }
                                     }
                                 },
                                 onDragEnd = {
@@ -263,37 +203,24 @@ fun AppListScreen() {
                 ) {
                     IconButton(
                         onClick = {
-                            context.startActivity(
-                                Intent(context, SettingsActivity::class.java)
-                            )
+                            context.startActivity(Intent(context, SettingsActivity::class.java))
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Color.White)
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    letters.forEach { letter ->
-                        Text(
-                            letter.toString(),
-                            color = Color.Transparent.copy(alpha = 0.85f),
-                            fontSize = 8.sp,
-                        )
+                    Spacer(Modifier.height(8.dp))
+                    letters.forEach {
+                        Text(it.toString(), color = Color.Transparent, fontSize = 8.sp)
                     }
                 }
 
-                // Overlay letter preview
                 overlayLetter?.let { letter ->
                     Box(
-                        modifier = Modifier
+                        Modifier
                             .align(Alignment.CenterEnd)
                             .offset(x = (-48).dp)
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .padding(12.dp)
                     ) {
                         Text(letter, color = Color.White, fontSize = 24.sp)
                     }
@@ -318,7 +245,7 @@ fun UnderlineSearchBar(
         singleLine = true,
         placeholder = {
             Text(
-                text = placeholder,
+                placeholder,
                 color = Color.Gray,
                 fontSize = Constants.Sizes.APP_LABEL_TEXT_SIZE.sp
             )
@@ -338,20 +265,14 @@ fun UnderlineSearchBar(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = Color.White.copy(alpha = 0.8f)
-            )
+            Icon(Icons.Default.Search,
+                contentDescription = "Search", tint = Color.White.copy(alpha = 0.8f))
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
                 IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Clear",
-                        tint = Color.White.copy(alpha = 0.8f)
-                    )
+                    Icon(Icons.Default.Close,
+                        contentDescription = "Clear", tint = Color.White.copy(alpha = 0.8f))
                 }
             }
         },

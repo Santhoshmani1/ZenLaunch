@@ -1,10 +1,13 @@
 package com.zenlauncher.helpers
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.database.sqlite.SQLiteConstraintException
 import android.provider.Settings
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
@@ -25,18 +28,27 @@ import kotlinx.coroutines.withContext
 
 object AppUtils {
 
+    private fun ioLaunch(block: suspend CoroutineScope.() -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch(block = block)
+    }
+
+    private suspend fun withMain(block: suspend () -> Unit) =
+        withContext(Dispatchers.Main) { block() }
+
+    private fun Context.showToast(msg: String) {
+        ioLaunch { withMain { Toast.makeText(this@showToast, msg, Toast.LENGTH_SHORT).show() } }
+    }
+
     fun addToFavorites(context: Context, app: AppInfo) {
         val dao = LauncherDatabase.getDatabase(context).favoriteDao()
-        CoroutineScope(Dispatchers.IO).launch {
-            dao.insertFavorite(
-                FavoriteEntity(
-                    label = app.label,
-                    packageName = app.packageName,
-                    className = app.className
+        ioLaunch {
+            try {
+                dao.insertFavorite(
+                    FavoriteEntity(label=app.label, packageName=app.packageName, className=app.className)
                 )
-            )
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "${app.label} added to favorites", Toast.LENGTH_SHORT).show()
+                withMain { context.showToast("${app.label} added to favorites") }
+            } catch (_: SQLiteConstraintException) {
+                withMain { context.showToast("${app.label} is already in favorites") }
             }
         }
     }
@@ -50,30 +62,29 @@ object AppUtils {
     }
 
     fun uninstallApp(context: Context, app: AppInfo) {
-        val intent = Intent(Intent.ACTION_DELETE).apply {
-            data = "package:${app.packageName}".toUri()
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
         val pm = context.packageManager
         val appInfo = pm.getInstalledApplications(0).find { it.packageName == app.packageName }
         val isSystemApp = appInfo?.flags?.and(ApplicationInfo.FLAG_SYSTEM) != 0
 
-        if (!isSystemApp && intent.resolveActivity(pm) != null) {
+        if (!isSystemApp) {
+            val intent = Intent(Intent.ACTION_DELETE).apply {
+                data = "package:${app.packageName}".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(Intent.createChooser(intent, "Uninstall ${app.label}"))
         } else {
-            Toast.makeText(context, "System app ${app.label} cannot be uninstalled", Toast.LENGTH_LONG).show()
+            context.showToast("System app ${app.label} cannot be uninstalled")
         }
     }
 
     fun launchApp(context: Context, app: AppInfo) {
-        val (packageName, className) = when (app.packageName) {
+        val (pkg, cls) = when (app.packageName) {
             DIGITAL_WELLBEING_PACKAGE_NAME -> DIGITAL_WELLBEING_PACKAGE_NAME to DIGITAL_WELLBEING_ACTIVITY
             DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME -> DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME to DIGITAL_WELLBEING_SAMSUNG_ACTIVITY
             else -> app.packageName to app.className
         }
-
         val intent = Intent(Intent.ACTION_MAIN).apply {
-            setClassName(packageName, className)
+            setClassName(pkg, cls)
             addCategory(Intent.CATEGORY_LAUNCHER)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
@@ -86,7 +97,9 @@ object AppUtils {
         selectedApps: MutableList<AppInfo>,
         onUpdated: (AppInfo) -> Unit
     ) {
-        val editText = EditText(context).apply {
+        val activity = context as? Activity ?: return context.showToast("Rename requires an Activity")
+
+        val editText = EditText(activity).apply {
             setText(app.label)
             hint = "Enter new app name"
             setSingleLine()
@@ -95,7 +108,7 @@ object AppUtils {
             background = null
         }
 
-        val dialog = MaterialAlertDialogBuilder(context)
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle("Rename ${app.label}")
             .setView(editText)
             .setPositiveButton("Save", null)
@@ -103,71 +116,49 @@ object AppUtils {
             .create()
 
         dialog.setOnShowListener {
-            val saveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            saveButton.setOnClickListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 val newLabel = editText.text.toString().trim()
-                if (newLabel.isNotBlank()) {
-                    val updatedApp = app.copy(label = newLabel)
-
-                    // Update in selectedApps list
-                    val index = selectedApps.indexOfFirst {
-                        it.packageName == app.packageName && it.className == app.className
-                    }
-                    if (index != -1) selectedApps[index] = updatedApp
-
-                    // Persist rename in DB
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val db = LauncherDatabase.getDatabase(context)
-                        db.renamedAppDao().insertOrUpdateRename(
-                            RenamedAppEntity(app.packageName, app.className, newLabel)
-                        )
-
-                        // If in favorites, also update there
-                        db.favoriteDao().renameFavorite(app.packageName, app.className, newLabel)
-                    }
-
-                    // Update UI
-                    onUpdated(updatedApp)
-                    Toast.makeText(context, "Renamed to $newLabel", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                } else {
+                if (newLabel.isBlank()) {
                     editText.error = "Name cannot be empty"
+                    return@setOnClickListener
                 }
+
+                val updatedApp = app.copy(label = newLabel)
+                selectedApps.replaceAll { if (it.packageName == app.packageName && it.className == app.className) updatedApp else it }
+
+                ioLaunch {
+                    val db = LauncherDatabase.getDatabase(activity)
+                    db.renamedAppDao().insertOrUpdateRename(
+                        RenamedAppEntity(app.packageName, app.className, newLabel)
+                    )
+                    db.favoriteDao().renameFavorite(app.packageName, app.className, newLabel)
+                }
+
+                onUpdated(updatedApp)
+                activity.showToast("Renamed to $newLabel")
+                dialog.dismiss()
             }
 
-            editText.requestFocus()
-            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+            dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+            editText.post {
+                val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+            }
         }
-
         dialog.show()
     }
 
-    suspend fun loadRenames(context: Context): Map<String, String> {
-        val dao = LauncherDatabase.getDatabase(context).renamedAppDao()
-        return dao.getRenamedApps().associateBy(
-            { it.packageName + it.className },
-            { it.customLabel }
-        )
-    }
+    suspend fun loadRenames(context: Context): Map<String, String> =
+        LauncherDatabase.getDatabase(context).renamedAppDao()
+            .getRenamedApps()
+            .associate { it.packageName + it.className to it.customLabel }
 
-    suspend fun saveRename(context: Context, app: AppInfo) {
-        val db = LauncherDatabase.getDatabase(context)
-        val dao = db.renamedAppDao()
-        dao.insertOrUpdateRename(
-            RenamedAppEntity(
-                packageName = app.packageName,
-                className = app.className,
-                customLabel = app.label
-            )
-        )
-    }
+    suspend fun saveRename(context: Context, app: AppInfo) =
+        LauncherDatabase.getDatabase(context).renamedAppDao()
+            .insertOrUpdateRename(RenamedAppEntity(app.packageName, app.className, app.label))
 
-    suspend fun getRenamedLabel(context: Context, packageName: String, className: String): String? {
-        val db = LauncherDatabase.getDatabase(context)
-        val dao = db.renamedAppDao()
-        return dao.getRename(packageName, className)?.customLabel
-    }
+    suspend fun getRenamedLabel(context: Context, pkg: String, cls: String): String? =
+        LauncherDatabase.getDatabase(context).renamedAppDao().getRename(pkg, cls)?.customLabel
 
     fun showOptionsDialog(
         context: Context,
@@ -175,35 +166,29 @@ object AppUtils {
         selectedApps: MutableList<AppInfo>,
         onUpdated: (AppInfo) -> Unit
     ) {
-        AlertDialog.Builder(context)
+        val activity = context as? Activity ?: return context.showToast("Options require an Activity")
+        AlertDialog.Builder(activity)
             .setTitle(app.label)
             .setItems(Constants.APP_OPTIONS) { _, which ->
                 when (which) {
-                    0 -> addToFavorites(context, app)
-                    1 -> renameApp(context, app, selectedApps, onUpdated)
-                    2 -> openAppInfo(context, app)
-                    3 -> uninstallApp(context, app)
+                    0 -> addToFavorites(activity, app)
+                    1 -> renameApp(activity, app, selectedApps, onUpdated)
+                    2 -> openAppInfo(activity, app)
+                    3 -> uninstallApp(activity, app)
                 }
             }
             .show()
     }
 
-    suspend fun loadFavorites(context: Context): List<AppInfo> {
-        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
-        return dao.getFavorites().map { AppInfo(it.label, it.packageName, it.className) }
-    }
+    suspend fun loadFavorites(context: Context): List<AppInfo> =
+        LauncherDatabase.getDatabase(context).favoriteDao()
+            .getFavorites().map { AppInfo(it.label, it.packageName, it.className) }
 
     fun saveFavorites(context: Context, favorites: List<AppInfo>) {
         val dao = LauncherDatabase.getDatabase(context).favoriteDao()
-        CoroutineScope(Dispatchers.IO).launch {
-            dao.getFavorites().forEach { dao.deleteFavorite(it) } // clear
-            favorites.forEach { app ->
-                dao.insertFavorite(
-                     FavoriteEntity(label=app.label,
-                                    packageName = app.packageName,
-                                    className = app.className)
-                )
-            }
+        ioLaunch {
+            dao.clearAll()
+            favorites.forEach { dao.insertFavorite(FavoriteEntity(label = it.label, packageName = it.packageName, className =  it.className)) }
         }
     }
 
@@ -213,16 +198,17 @@ object AppUtils {
         selectedApps: MutableList<AppInfo>,
         onUpdated: () -> Unit
     ) {
-        AlertDialog.Builder(context)
+        val activity = context as? Activity ?: return context.showToast("This requires an Activity")
+        AlertDialog.Builder(activity)
             .setMessage("Remove ${app.label} from favorites?")
             .setPositiveButton("Remove") { _, _ ->
-                val dao = LauncherDatabase.getDatabase(context).favoriteDao()
-                CoroutineScope(Dispatchers.IO).launch {
+                val dao = LauncherDatabase.getDatabase(activity).favoriteDao()
+                ioLaunch {
                     dao.deleteByApp(app.packageName, app.className)
-                    selectedApps.remove(app)
-                    withContext(Dispatchers.Main) {
+                    selectedApps.removeAll { it.packageName == app.packageName && it.className == app.className }
+                    withMain {
                         onUpdated()
-                        Toast.makeText(context, "${app.label} removed from favorites", Toast.LENGTH_SHORT).show()
+                        activity.showToast("${app.label} removed from favorites")
                     }
                 }
             }

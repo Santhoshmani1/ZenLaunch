@@ -6,7 +6,10 @@ import android.content.Intent
 import android.widget.Toast
 import com.zenlauncher.helpers.Constants
 
-
+/**
+ * Handles device admin status changes. Shows a toast when enabled or disabled.
+ * Register in the manifest under <receiver>.
+ */
 class DeviceAdmin : DeviceAdminReceiver() {
     override fun onEnabled(context: Context, intent: Intent) {
         Toast.makeText(context, Constants.Toasts.DEVICE_ADMIN_ENABLED, Toast.LENGTH_SHORT).show()

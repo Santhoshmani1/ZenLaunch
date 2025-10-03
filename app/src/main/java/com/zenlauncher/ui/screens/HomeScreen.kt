@@ -8,18 +8,8 @@ import android.content.IntentFilter
 import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +25,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Home screen displaying current time, date, favorites, and quick actions.
+ * Double-tap anywhere to lock the device.
+ */
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
@@ -46,21 +40,15 @@ fun HomeScreen() {
     val timeFormatter = remember { DateFormat.getTimeFormat(context) }
     var currentTime by remember { mutableStateOf(timeFormatter.format(Date())) }
 
+    // Update time automatically using BroadcastReceiver
     DisposableEffect(Unit) {
-        val receiver = TimeChangedReceiver { updatedTime ->
-            currentTime = updatedTime
-        }
-
+        val receiver = TimeChangedReceiver { updatedTime -> currentTime = updatedTime }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_TIME_TICK)
             addAction(Intent.ACTION_TIME_CHANGED)
         }
-
         context.registerReceiver(receiver, filter)
-
-        onDispose {
-            context.unregisterReceiver(receiver)
-        }
+        onDispose { context.unregisterReceiver(receiver) }
     }
 
     Box(
@@ -81,24 +69,21 @@ fun HomeScreen() {
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 10.dp)
         ) {
-
             TimeDateDisplay(currentTime, currentDate, context, modifier = Modifier)
-            FavoritesList(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
-
+            FavoritesList(modifier = Modifier.fillMaxWidth().weight(1f))
             QuickAccessButtons(context, modifier = Modifier)
         }
     }
 }
 
-
+/**
+ * Locks the device if Device Admin is active; otherwise prompts for activation.
+ */
 fun lockDevice(context: Context) {
     val devicePolicyManager =
         context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
     val compName = ComponentName(context, DeviceAdmin::class.java)
+
     if (devicePolicyManager.isAdminActive(compName)) {
         devicePolicyManager.lockNow()
     } else {

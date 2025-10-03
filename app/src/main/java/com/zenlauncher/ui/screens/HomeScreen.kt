@@ -1,7 +1,6 @@
 package com.zenlauncher.ui.screens
 
 import android.app.admin.DevicePolicyManager
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -17,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.listener.DeviceAdmin
+import com.zenlauncher.receiver.TimeChangedReceiver
 import com.zenlauncher.ui.components.homescreen.FavoritesList
 import com.zenlauncher.ui.components.homescreen.QuickAccessButtons
 import com.zenlauncher.ui.components.homescreen.TimeDateDisplay
@@ -41,32 +42,25 @@ fun HomeScreen() {
         SimpleDateFormat("EEE, dd MMM yyyy", Locale.getDefault()).format(Date())
     }
 
-    val lastTapTime = remember { mutableStateOf(0L) }
+    val lastTapTime = remember { mutableLongStateOf(0L) }
     val timeFormatter = remember { DateFormat.getTimeFormat(context) }
     var currentTime by remember { mutableStateOf(timeFormatter.format(Date())) }
 
     DisposableEffect(Unit) {
-        var formatter = DateFormat.getTimeFormat(context)
+        val receiver = TimeChangedReceiver { updatedTime ->
+            currentTime = updatedTime
+        }
+
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_TIME_TICK)
             addAction(Intent.ACTION_TIME_CHANGED)
         }
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(c: Context?, intent: Intent?) {
-                when (intent?.action) {
-                    Intent.ACTION_TIME_TICK -> {
-                        currentTime = formatter.format(Date())
-                    }
 
-                    Intent.ACTION_TIME_CHANGED -> {
-                        formatter = DateFormat.getTimeFormat(context)
-                        currentTime = formatter.format(Date())
-                    }
-                }
-            }
-        }
         context.registerReceiver(receiver, filter)
-        onDispose { context.unregisterReceiver(receiver) }
+
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
     }
 
     Box(
@@ -75,10 +69,10 @@ fun HomeScreen() {
             .background(Color.Black)
             .clickable {
                 val now = System.currentTimeMillis()
-                if (now - lastTapTime.value < Constants.Sizes.DOUBLE_TAP_THRESHOLD_MS) {
+                if (now - lastTapTime.longValue < Constants.Sizes.DOUBLE_TAP_THRESHOLD_MS) {
                     lockDevice(context)
                 }
-                lastTapTime.value = now
+                lastTapTime.longValue = now
             }
     ) {
         Column(

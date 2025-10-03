@@ -8,9 +8,20 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import com.zenlauncher.data.models.AppInfo
 import com.zenlauncher.helpers.AppUtils
-import com.zenlauncher.reciever.PackageAddedReceiver
-import com.zenlauncher.reciever.PackageRemovedReceiver
+import com.zenlauncher.receiver.PackageAddedReceiver
+import com.zenlauncher.receiver.PackageRemovedReceiver
 
+/**
+ * PackageChangeHandler
+ *
+ * A lifecycle-aware Composable that listens for app install/uninstall events
+ * and keeps the app list in sync with the device state.
+ *
+ * - Updates [allApps] when apps are installed or removed.
+ * - Keeps [apps] filtered according to [searchQuery].
+ * - Removes deleted apps from [selectedApps] and persists favorites.
+ *
+ */
 @Composable
 fun PackageChangeHandler(
     context: Context,
@@ -19,13 +30,17 @@ fun PackageChangeHandler(
     apps: MutableState<List<AppInfo>>,
     selectedApps: MutableList<AppInfo>
 ) {
-    DisposableEffect(searchQuery) {   // Re-run filter if search changes
-    fun updateApps() {
-        apps.value = if (searchQuery.isBlank()) allApps.value
-        else allApps.value.filter {
-            it.label.contains(searchQuery.trim(), ignoreCase = true)
+    DisposableEffect(searchQuery) {
+
+        fun updateApps() {
+            apps.value = if (searchQuery.isBlank()) {
+                allApps.value
+            } else {
+                allApps.value.filter {
+                    it.label.contains(searchQuery.trim(), ignoreCase = true)
+                }
+            }
         }
-    }
 
         val addedReceiver = PackageAddedReceiver { newApp ->
             allApps.value = (allApps.value + newApp).sortedBy { it.label.lowercase() }
@@ -41,6 +56,7 @@ fun PackageChangeHandler(
             onFavoritesUpdated = { AppUtils.saveFavorites(context, selectedApps) }
         )
 
+        // Register receivers for install/remove events
         context.registerReceiver(
             addedReceiver,
             IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply { addDataScheme("package") }

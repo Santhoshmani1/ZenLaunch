@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.listener.DeviceAdmin
 import com.zenlauncher.receiver.TimeChangedReceiver
-import com.zenlauncher.ui.components.homescreen.FavoritesList
+import com.zenlauncher.ui.components.homescreen.FavouritesList
 import com.zenlauncher.ui.components.homescreen.QuickAccessButtons
 import com.zenlauncher.ui.components.homescreen.TimeDateDisplay
 import java.text.SimpleDateFormat
@@ -26,7 +26,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Home screen displaying current time, date, favorites, and quick actions.
+ * Home screen displaying current time, date, favourites, and quick actions.
  * Double-tap anywhere to lock the device.
  */
 @Composable
@@ -70,7 +70,7 @@ fun HomeScreen() {
                 .padding(horizontal = 24.dp, vertical = 10.dp)
         ) {
             TimeDateDisplay(currentTime, currentDate, context, modifier = Modifier)
-            FavoritesList(modifier = Modifier.fillMaxWidth().weight(1f))
+            FavouritesList(modifier = Modifier.fillMaxWidth().weight(1f))
             QuickAccessButtons(context, modifier = Modifier)
         }
     }

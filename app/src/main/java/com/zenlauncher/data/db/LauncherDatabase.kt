@@ -6,11 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.zenlauncher.data.db.dao.FavoriteDao
 import com.zenlauncher.data.db.dao.RenamedAppDao
-import com.zenlauncher.data.db.entities.FavoriteEntity
+import com.zenlauncher.data.db.entities.FavouriteEntity
 import com.zenlauncher.data.db.entities.RenamedAppEntity
 
 @Database(
-    entities = [FavoriteEntity::class, RenamedAppEntity::class],
+    entities = [FavouriteEntity::class, RenamedAppEntity::class],
     version = 2,
     exportSchema = false
 )

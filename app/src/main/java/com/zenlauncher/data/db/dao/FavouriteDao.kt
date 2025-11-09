@@ -6,29 +6,29 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.zenlauncher.data.db.entities.FavoriteEntity
+import com.zenlauncher.data.db.entities.FavouriteEntity
 
 @Dao
 interface FavoriteDao {
-    @Query("SELECT * FROM favorites")
-    suspend fun getFavorites(): List<FavoriteEntity>
+    @Query("SELECT * FROM favourites")
+    suspend fun getFavourites(): List<FavouriteEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFavorite(favorite: FavoriteEntity)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFavorite(favorite: FavouriteEntity): Long
 
     @Delete
-    suspend fun deleteFavorite(favorite: FavoriteEntity)
+    suspend fun deleteFavorite(favorite: FavouriteEntity)
 
     @Update
-    suspend fun updateFavorite(favorite: FavoriteEntity)
+    suspend fun updateFavorite(favorite: FavouriteEntity)
 
-    @Query("DELETE FROM favorites WHERE packageName = :pkg AND className = :cls")
+    @Query("DELETE FROM favourites WHERE packageName = :pkg AND className = :cls")
     suspend fun deleteByApp(pkg: String, cls: String)
 
-    @Query("UPDATE favorites SET label = :newLabel WHERE packageName = :pkg AND className = :cls")
+    @Query("UPDATE favourites SET label = :newLabel WHERE packageName = :pkg AND className = :cls")
     suspend fun renameFavorite(pkg: String, cls: String, newLabel: String)
 
-    @Query("DELETE FROM favorites")
+    @Query("DELETE FROM favourites")
     suspend fun clearAll()
 
 }

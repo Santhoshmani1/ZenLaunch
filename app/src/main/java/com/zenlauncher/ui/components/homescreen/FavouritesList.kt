@@ -23,14 +23,14 @@
 
 
     @Composable
-    fun FavoritesList(
+    fun FavouritesList(
         modifier: Modifier = Modifier
     ) {
         val context = LocalContext.current
         val selectedApps = remember { mutableStateListOf<AppInfo>() }
 
         LaunchedEffect(Unit) {
-            val apps = AppUtils.loadFavorites(context)
+            val apps = AppUtils.loadFavourites(context)
             val sortedApps = apps.sortedBy { it.label }
             if (selectedApps != sortedApps) {
                 selectedApps.clear()
@@ -58,11 +58,11 @@
                             .combinedClickable(
                                 onClick = { AppUtils.launchApp(context, app) },
                                 onLongClick = {
-                                    AppUtils.confirmAndRemoveFromFavorites(context, app, selectedApps) {
+                                    AppUtils.confirmAndRemoveFromFavourites(context, app, selectedApps) {
                                         selectedApps.remove(app)
                                         Toast.makeText(
                                             context,
-                                            "${app.label} removed from favorites",
+                                            "${app.label} removed from favourites",
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }

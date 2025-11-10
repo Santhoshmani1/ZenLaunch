@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.database.sqlite.SQLiteConstraintException
 import android.provider.Settings
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -14,7 +13,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.zenlauncher.data.db.LauncherDatabase
-import com.zenlauncher.data.db.entities.FavoriteEntity
+import com.zenlauncher.data.db.entities.FavouriteEntity
 import com.zenlauncher.data.db.entities.RenamedAppEntity
 import com.zenlauncher.data.models.AppInfo
 import com.zenlauncher.helpers.Constants.DIGITAL_WELLBEING_ACTIVITY
@@ -39,19 +38,25 @@ object AppUtils {
         ioLaunch { withMain { Toast.makeText(this@showToast, msg, Toast.LENGTH_SHORT).show() } }
     }
 
-    fun addToFavorites(context: Context, app: AppInfo) {
-        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+    fun addToFavourites(context: Context, app: AppInfo) {
+        val dao = LauncherDatabase.getDatabase(context).favouriteDao()
         ioLaunch {
-            try {
-                dao.insertFavorite(
-                    FavoriteEntity(label=app.label, packageName=app.packageName, className=app.className)
+            val result = dao.insertFavourite(
+                FavouriteEntity(
+                    label = app.label,
+                    packageName = app.packageName,
+                    className = app.className
                 )
-                withMain { context.showToast("${app.label} added to favorites") }
-            } catch (_: SQLiteConstraintException) {
-                withMain { context.showToast("${app.label} is already in favorites") }
+            )
+            withMain {
+                if (result == -1L)
+                    context.showToast("${app.label} is already in favourites")
+                else
+                    context.showToast("${app.label} added to favourites")
             }
         }
     }
+
 
     fun openAppInfo(context: Context, app: AppInfo) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -131,7 +136,7 @@ object AppUtils {
                     db.renamedAppDao().insertOrUpdateRename(
                         RenamedAppEntity(app.packageName, app.className, newLabel)
                     )
-                    db.favoriteDao().renameFavorite(app.packageName, app.className, newLabel)
+                    db.favouriteDao().renameFavourite(app.packageName, app.className, newLabel)
                 }
 
                 onUpdated(updatedApp)
@@ -171,7 +176,7 @@ object AppUtils {
             .setTitle(app.label)
             .setItems(Constants.APP_OPTIONS) { _, which ->
                 when (which) {
-                    0 -> addToFavorites(activity, app)
+                    0 -> addToFavourites(activity, app)
                     1 -> renameApp(activity, app, selectedApps, onUpdated)
                     2 -> openAppInfo(activity, app)
                     3 -> uninstallApp(activity, app)
@@ -180,19 +185,19 @@ object AppUtils {
             .show()
     }
 
-    suspend fun loadFavorites(context: Context): List<AppInfo> =
-        LauncherDatabase.getDatabase(context).favoriteDao()
-            .getFavorites().map { AppInfo(it.label, it.packageName, it.className) }
+    suspend fun loadFavourites(context: Context): List<AppInfo> =
+        LauncherDatabase.getDatabase(context).favouriteDao()
+            .getFavourites().map { AppInfo(it.label, it.packageName, it.className) }
 
-    fun saveFavorites(context: Context, favorites: List<AppInfo>) {
-        val dao = LauncherDatabase.getDatabase(context).favoriteDao()
+    fun saveFavourites(context: Context, favourites: List<AppInfo>) {
+        val dao = LauncherDatabase.getDatabase(context).favouriteDao()
         ioLaunch {
             dao.clearAll()
-            favorites.forEach { dao.insertFavorite(FavoriteEntity(label = it.label, packageName = it.packageName, className =  it.className)) }
+            favourites.forEach { dao.insertFavourite(FavouriteEntity(label = it.label, packageName = it.packageName, className =  it.className)) }
         }
     }
 
-    fun confirmAndRemoveFromFavorites(
+    fun confirmAndRemoveFromFavourites(
         context: Context,
         app: AppInfo,
         selectedApps: MutableList<AppInfo>,
@@ -200,15 +205,15 @@ object AppUtils {
     ) {
         val activity = context as? Activity ?: return context.showToast("This requires an Activity")
         AlertDialog.Builder(activity)
-            .setMessage("Remove ${app.label} from favorites?")
+            .setMessage("Remove ${app.label} from favourites?")
             .setPositiveButton("Remove") { _, _ ->
-                val dao = LauncherDatabase.getDatabase(activity).favoriteDao()
+                val dao = LauncherDatabase.getDatabase(activity).favouriteDao()
                 ioLaunch {
                     dao.deleteByApp(app.packageName, app.className)
                     selectedApps.removeAll { it.packageName == app.packageName && it.className == app.className }
                     withMain {
                         onUpdated()
-                        activity.showToast("${app.label} removed from favorites")
+                        activity.showToast("${app.label} removed from favourites")
                     }
                 }
             }

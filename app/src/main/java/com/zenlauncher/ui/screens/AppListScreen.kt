@@ -89,9 +89,9 @@ fun AppListScreen() {
         allApps.value = renamedApps
         apps.value = renamedApps
 
-        val favorites = AppUtils.loadFavorites(context)
+        val favourites = AppUtils.loadFavourites(context)
         selectedApps.clear()
-        selectedApps.addAll(favorites.map { fav ->
+        selectedApps.addAll(favourites.map { fav ->
             val key = "${fav.packageName}/${fav.className}"
             fav.copy(label = renames[key] ?: fav.label)
         })
@@ -140,8 +140,8 @@ fun AppListScreen() {
                     highlightLetter = overlayLetter?.firstOrNull(),
                     fadeOthers = isIndexDragging.value,
                     listState = listState,
-                    onFavoritesChanged = {
-                        coroutineScope.launch { AppUtils.saveFavorites(context, selectedApps) }
+                    onFavouritesChanged = {
+                        coroutineScope.launch { AppUtils.saveFavourites(context, selectedApps) }
                     },
                     onAppUpdated = { updatedApp ->
                         coroutineScope.launch {

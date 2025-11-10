@@ -9,8 +9,8 @@ import com.zenlauncher.helpers.AppUtils
  * Listens for app uninstall events (`ACTION_PACKAGE_REMOVED`).
  *
  * - Calls [onAppRemoved] with the removed package name.
- * - Clears and persists favorites via [AppUtils.saveFavorites].
- * - Triggers [onFavoritesUpdated] after changes.
+ * - Clears and persists favourites via [AppUtils.saveFavourites].
+ * - Triggers [onFavouritesUpdated] after changes.
  *
  * Register with:
  * ```
@@ -19,15 +19,15 @@ import com.zenlauncher.helpers.AppUtils
  */
 class PackageRemovedReceiver(
     private val onAppRemoved: (String) -> Unit,
-    private val onFavoritesUpdated: () -> Unit
+    private val onFavouritesUpdated: () -> Unit
 ) : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Intent.ACTION_PACKAGE_REMOVED) {
             val pkg = intent.data?.schemeSpecificPart ?: return
             onAppRemoved(pkg)
-            AppUtils.saveFavorites(context!!, emptyList())
-            onFavoritesUpdated()
+            AppUtils.saveFavourites(context!!, emptyList())
+            onFavouritesUpdated()
         }
     }
 }

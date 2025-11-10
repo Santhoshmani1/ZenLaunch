@@ -3,7 +3,7 @@ package com.zenlauncher.helpers
 object Constants {
 
     const val APP_TITLE = "Zen Launcher"
-    val APP_OPTIONS = arrayOf("Add to Favorites", "Rename", "App Info", "Uninstall")
+    val APP_OPTIONS = arrayOf("Add to Favourites", "Rename", "App Info", "Uninstall")
 
     const val GITHUB_REPO = "https://github.com/santhoshmani1/Zenlaunch"
 
@@ -19,7 +19,7 @@ object Constants {
 
     object Prefs {
         const val LAUNCHER_PREFS = "launcher_prefs"
-        const val FAVORITES_KEY = "favorites"
+        const val FAVORITES_KEY = "favourites"
     }
 
 

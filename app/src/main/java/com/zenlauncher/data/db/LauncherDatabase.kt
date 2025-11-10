@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.zenlauncher.data.db.dao.FavoriteDao
+import com.zenlauncher.data.db.dao.FavouriteDao
 import com.zenlauncher.data.db.dao.RenamedAppDao
 import com.zenlauncher.data.db.entities.FavouriteEntity
 import com.zenlauncher.data.db.entities.RenamedAppEntity
@@ -15,7 +15,7 @@ import com.zenlauncher.data.db.entities.RenamedAppEntity
     exportSchema = false
 )
 abstract class LauncherDatabase : RoomDatabase() {
-    abstract fun favoriteDao(): FavoriteDao
+    abstract fun favouriteDao(): FavouriteDao
     abstract fun renamedAppDao(): RenamedAppDao
 
     companion object {

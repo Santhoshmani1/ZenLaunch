@@ -19,7 +19,7 @@ import com.zenlauncher.receiver.PackageRemovedReceiver
  *
  * - Updates [allApps] when apps are installed or removed.
  * - Keeps [apps] filtered according to [searchQuery].
- * - Removes deleted apps from [selectedApps] and persists favorites.
+ * - Removes deleted apps from [selectedApps] and persists favourites.
  *
  */
 @Composable
@@ -53,7 +53,7 @@ fun PackageChangeHandler(
                 selectedApps.removeAll { it.packageName == pkg }
                 updateApps()
             },
-            onFavoritesUpdated = { AppUtils.saveFavorites(context, selectedApps) }
+            onFavouritesUpdated = { AppUtils.saveFavourites(context, selectedApps) }
         )
 
         // Register receivers for install/remove events

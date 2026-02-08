@@ -37,7 +37,7 @@ object SettingsUtils {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, Constants.APP_TITLE)
-            putExtra(Intent.EXTRA_TEXT, Constants.Texts.SHARE_TEXT)
+            putExtra(Intent.EXTRA_TEXT, Constants.Settings.Texts.SHARE_TEXT)
         }
         context.startActivity(Intent.createChooser(intent, Constants.Intents.SHARE_VIA))
     }

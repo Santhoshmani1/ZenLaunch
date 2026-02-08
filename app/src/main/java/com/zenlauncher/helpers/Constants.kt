@@ -8,9 +8,11 @@ object Constants {
     const val GITHUB_REPO = "https://github.com/santhoshmani1/Zenlaunch"
 
     const val DIGITAL_WELLBEING_PACKAGE_NAME = "com.google.android.apps.wellbeing"
-    const val DIGITAL_WELLBEING_ACTIVITY = "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
+    const val DIGITAL_WELLBEING_ACTIVITY =
+        "com.google.android.apps.wellbeing.settings.TopLevelSettingsActivity"
     const val DIGITAL_WELLBEING_SAMSUNG_PACKAGE_NAME = "com.samsung.android.forest"
-    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY = "com.samsung.android.forest.launcher.LauncherActivity"
+    const val DIGITAL_WELLBEING_SAMSUNG_ACTIVITY =
+        "com.samsung.android.forest.launcher.LauncherActivity"
 
     object Intents {
         const val SHARE_VIA = "Share via"
@@ -34,22 +36,53 @@ object Constants {
     }
 
     object Settings {
-        const val TITLE = "Zen Launcher Settings"
-        const val PADDING_HORIZONTAL = 40
-        const val PADDING_VERTICAL = 80
-        const val TEXT_PADDING_ALL = 5
-        const val TEXT_SIZE_OPTION = 16f
+        const val TITLE = "Settings"
 
-        // Spacing values
-        const val SPACING_SMALL = 20
-        const val SPACING_MEDIUM = 40
-        const val SPACING_LARGE = 60
-    }
+        object Ui {
+            const val OPTION_TEXT_SIZE = 16
+            const val SUBTITLE_TEXT_SIZE = 13
+            const val HEADER_TEXT_SIZE = 22
+            const val SUB_HEADER_TEXT_SIZE = 18
+            const val DIALOG_TITLE_SIZE = 20
+            const val DIALOG_BODY_SIZE = 15
+        }
 
+        object Colors {
+            val DIALOG_BG = androidx.compose.ui.graphics.Color(0xFF111111)
+            val OVERLAY_BG = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.6f)
+            val PRIMARY = androidx.compose.ui.graphics.Color(0xFF069AED)
+        }
 
-    object Texts {
-        const val SHARE_TEXT = "Try ZenLauncher for a minimal, fast Android experience. " +
-                "https://github.com/Santhoshmani1/ZenLaunch"
+        object Texts {
+            const val SECTION_GENERAL = "General"
+            const val SECTION_SUPPORT = "Support"
+
+            const val SET_DEFAULT_LAUNCHER_TITLE = "Set as default launcher"
+            const val SET_DEFAULT_LAUNCHER_SUB = "Use ZenLauncher as home"
+
+            const val DEACTIVATE_ADMIN_TITLE = "Deactivate device admin"
+            const val DEACTIVATE_ADMIN_SUB = "Remove admin permission"
+
+            const val SHARE_TITLE = "Share ZenLauncher"
+            const val SHARE_SUB = "Invite your friends & family"
+
+            const val GITHUB_TITLE = "Star on GitHub"
+            const val GITHUB_SUB = "Support open-source"
+
+            const val EXIT_TITLE_OPTION = "Exit ZenLauncher"
+            const val EXIT_SUB = "Close launcher session"
+
+            const val EXIT_TITLE = "Exit ZenLauncher"
+            const val EXIT_CONFIRM = "Are you sure you want to exit ZenLauncher?"
+            const val SELECT_LAUNCHER_TITLE = "Select default launcher"
+            const val SELECT_LAUNCHER_DESC =
+                "Choose another launcher app to exit ZenLauncher."
+            const val CANCEL = "Cancel"
+            const val EXIT = "Exit"
+            const val OPEN_SETTINGS = "Open Settings"
+            const val SHARE_TEXT =
+                "Try ZenLauncher for a minimal, focussed Android experience. https://github.com/Santhoshmani1/ZenLaunch"
+        }
     }
 
     object Toasts {

@@ -1,11 +1,6 @@
 package com.zenlauncher.ui.components.settings
 
 import android.content.Context
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,15 +12,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,43 +31,87 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.zenlauncher.helpers.Constants
 import com.zenlauncher.helpers.SettingsUtils
 
 @Composable
-fun SettingsOption(text: String, onClick: () -> Unit) {
-    BasicText(
-        text = text,
+fun SettingsOption(
+    title: String,
+    subtitle: String? = null,
+    icon: ImageVector,
+    destructive: Boolean = false,
+    onClick: () -> Unit
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(Constants.Settings.TEXT_PADDING_ALL.dp),
-        style = LocalTextStyle.current.copy(
-            fontSize = Constants.Settings.TEXT_SIZE_OPTION.sp,
-            color = Color.White
-        )
-    )
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Box(
+            modifier = Modifier
+                .width(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (destructive)
+                    MaterialTheme.colorScheme.error
+                else
+                    Color.White.copy(alpha = 0.85f)
+            )
+        }
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = title,
+                fontSize = Constants.Settings.Ui.OPTION_TEXT_SIZE.sp,
+                color = if (destructive)
+                    MaterialTheme.colorScheme.error
+                else
+                    Color.White
+            )
+
+            subtitle?.let {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = it,
+                    fontSize = Constants.Settings.Ui.SUBTITLE_TEXT_SIZE.sp,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
 }
 
+
 @Composable
-fun SettingsHeader(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 20.dp, bottom = 10.dp),
-        contentAlignment = Alignment.TopStart
-    ) {
-        Text(
-            text = text,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+fun SettingsHeader(
+    title: String,
+    isSubHeader: Boolean = false
+) {
+    Text(
+        text = title,
+        fontSize = if (isSubHeader)
+            Constants.Settings.Ui.SUB_HEADER_TEXT_SIZE.sp
+        else
+            Constants.Settings.Ui.HEADER_TEXT_SIZE.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        modifier = Modifier.padding(
+            top = if (isSubHeader) 8.dp else 24.dp,
+            bottom = 12.dp
         )
-    }
+    )
 }
 
 @Composable
@@ -80,76 +119,76 @@ fun ExitZenLauncherDialog(
     context: Context,
     onDismiss: () -> Unit
 ) {
-    var showSecondStep by remember { mutableStateOf(false) }
-
-    val title = if (showSecondStep) "Select Default Launcher" else "Exit Zen Launcher"
-    val message = if (showSecondStep)
-        "To exit, please select another Home screen app as your default launcher."
-    else
-        "Are you sure you want to exit Zen Launcher?"
-    val buttonText = if (showSecondStep) "Open Settings" else "Exit"
+    var confirmStep by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(onClick = onDismiss),
+            .background(Constants.Settings.Colors.OVERLAY_BG),
         contentAlignment = Alignment.Center
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn() + scaleIn(),
-            exit = fadeOut() + scaleOut()
+        Card(
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Constants.Settings.Colors.DIALOG_BG
+            ),
+            modifier = Modifier
+                .padding(24.dp)
+                .widthIn(max = 340.dp)
         ) {
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF121212).copy(alpha = 0.95f)),
-                modifier = Modifier
-                    .padding(24.dp)
-                    .wrapContentHeight()
-                    .widthIn(max = 340.dp)
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Text(
+                    text = if (confirmStep)
+                        Constants.Settings.Texts.SELECT_LAUNCHER_TITLE
+                    else
+                        Constants.Settings.Texts.EXIT_TITLE,
+                    fontSize = Constants.Settings.Ui.DIALOG_TITLE_SIZE.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Text(
+                    text = if (confirmStep)
+                        Constants.Settings.Texts.SELECT_LAUNCHER_DESC
+                    else
+                        Constants.Settings.Texts.EXIT_CONFIRM,
+                    fontSize = Constants.Settings.Ui.DIALOG_BODY_SIZE.sp,
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(
-                        text = title,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
+                    TextButton(onClick = onDismiss) {
+                        Text(Constants.Settings.Texts.CANCEL, color = Color.White)
+                    }
 
-                    Text(
-                        text = message,
-                        fontSize = 16.sp,
-                        color = Color.LightGray,
-                        textAlign = TextAlign.Center
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    Button(
+                        onClick = {
+                            if (confirmStep) {
+                                SettingsUtils.openDefaultLauncherSettings(context)
+                            } else {
+                                confirmStep = true
+                            }
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Constants.Settings.Colors.PRIMARY
+                        )
                     ) {
-                        TextButton(onClick = onDismiss) {
-                            Text("Cancel", color = Color.White)
-                        }
-                        Button(
-                            onClick = {
-                                if (showSecondStep) {
-                                    SettingsUtils.openDefaultLauncherSettings(context)
-                                } else {
-                                    showSecondStep = true
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF069AED)),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(buttonText, color = Color.White)
-                        }
+                        Text(
+                            text = if (confirmStep)
+                                Constants.Settings.Texts.OPEN_SETTINGS
+                            else
+                                Constants.Settings.Texts.EXIT,
+                            color = Color.White
+                        )
                     }
                 }
             }

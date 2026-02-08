@@ -1,15 +1,16 @@
 package com.zenlauncher.ui.screens
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,8 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -45,65 +44,94 @@ class SettingsActivity : ComponentActivity() {
 fun ZenLauncherSettingsScreen(onBackPressed: () -> Unit) {
     var showExitDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
     Scaffold(
         topBar = {
             ZenTopAppBar(
-                title = Constants.Settings.TITLE,
+                title = Constants.APP_TITLE,
                 onBackPressed = onBackPressed
             )
         },
         containerColor = Color.Black
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(
-                    horizontal = Constants.Settings.PADDING_HORIZONTAL.dp,
-                    vertical = Constants.Settings.PADDING_VERTICAL.dp
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
+
+        LazyColumn(
+            contentPadding = PaddingValues(
+                start = 20.dp,
+                end = 20.dp,
+                top = paddingValues.calculateTopPadding() + 16.dp,
+                bottom = 24.dp
+            )
         ) {
-            SettingsHeader("General")
 
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_MEDIUM.dp))
-
-            SettingsOption("Set as Default Launcher") {
-                SettingsUtils.openDefaultLauncherSettings(context)
+            item {
+                SettingsHeader(
+                    title = Constants.Settings.TITLE,
+                    isSubHeader = true
+                )
             }
 
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_SMALL.dp))
-
-            SettingsOption("Deactivate Device Admin") {
-                SettingsUtils.deactivateDeviceAdmin(context)
+            item {
+                SettingsHeader(title = Constants.Settings.Texts.SECTION_GENERAL)
             }
 
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_MEDIUM.dp))
-
-            SettingsHeader("Support Us")
-
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_SMALL.dp))
-
-            SettingsOption("Share ZenLauncher") {
-                SettingsUtils.shareApp(context)
+            item {
+                SettingsOption(
+                    title = Constants.Settings.Texts.SET_DEFAULT_LAUNCHER_TITLE,
+                    subtitle = Constants.Settings.Texts.SET_DEFAULT_LAUNCHER_SUB,
+                    icon = Icons.Outlined.Home
+                ) {
+                    SettingsUtils.openDefaultLauncherSettings(context)
+                }
             }
 
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_SMALL.dp))
-
-            SettingsOption("Star us on GitHub") {
-                SettingsUtils.openGitHub(context)
+            item {
+                SettingsOption(
+                    title = Constants.Settings.Texts.DEACTIVATE_ADMIN_TITLE,
+                    subtitle = Constants.Settings.Texts.DEACTIVATE_ADMIN_SUB,
+                    icon = Icons.Outlined.Lock
+                ) {
+                    SettingsUtils.deactivateDeviceAdmin(context)
+                }
             }
 
-            Spacer(modifier = Modifier.height(Constants.Settings.SPACING_LARGE.dp))
+            item {
+                SettingsHeader(title = Constants.Settings.Texts.SECTION_SUPPORT)
+            }
 
-            SettingsOption("Exit Zen Launcher") {
-                showExitDialog = true
+            item {
+                SettingsOption(
+                    title = Constants.Settings.Texts.SHARE_TITLE,
+                    subtitle = Constants.Settings.Texts.SHARE_SUB,
+                    icon = Icons.Outlined.Share
+                ) {
+                    SettingsUtils.shareApp(context)
+                }
+            }
+
+            item {
+                SettingsOption(
+                    title = Constants.Settings.Texts.GITHUB_TITLE,
+                    subtitle = Constants.Settings.Texts.GITHUB_SUB,
+                    icon = Icons.Outlined.Star
+                ) {
+                    SettingsUtils.openGitHub(context)
+                }
+            }
+
+            item {
+                SettingsOption(
+                    title = Constants.Settings.Texts.EXIT_TITLE_OPTION,
+                    subtitle = Constants.Settings.Texts.EXIT_SUB,
+                    icon = Icons.AutoMirrored.Outlined.ExitToApp,
+                    destructive = true
+                ) {
+                    showExitDialog = true
+                }
             }
         }
 
         if (showExitDialog) {
-            Log.d("Exiting", "Here we go")
             ExitZenLauncherDialog(
                 context = context,
                 onDismiss = { showExitDialog = false }

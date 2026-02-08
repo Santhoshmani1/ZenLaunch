@@ -1,5 +1,6 @@
 package com.zenlauncher
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -22,12 +23,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.zenlauncher.ui.screens.AppListScreen
 import com.zenlauncher.ui.screens.HomeScreen
+import com.zenlauncher.ui.screens.SettingsActivity
 import kotlinx.coroutines.launch
 
 
@@ -59,6 +62,7 @@ fun MainPager() {
         initialPage = 0,
         pageCount = { 2 },
     )
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     BackHandler {
@@ -101,7 +105,11 @@ fun MainPager() {
 
     val pages = listOf<@Composable () -> Unit>(
         { HomeScreen() },
-        { AppListScreen() }
+        { AppListScreen(
+            onOpenSettings = {
+                context.startActivity(Intent(context, SettingsActivity::class.java))
+            }
+        ) }
     )
 
     HorizontalPager(
